@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Lock the screen
+dms ipc call lock lock &
+
+# Avoid running screensaver when locked
+pkill -f "alacritty --class Screensaver"

@@ -1,0 +1,18 @@
+{
+    "id": "systemmenu",
+    "name": "System Menu",
+    "description": "A launcher-style system menu that exposes common system tasks and installs",
+    "version": "1.0.0",
+    "author": "Enosh Osano Misonge",
+    "type": "widget",
+    "capabilities": ["system", "settings"],
+    "firstParty": true,
+    "component": "./SystemMenuWidget.qml",
+    "icon": "menu",
+    "settings": "./SystemMenuSettings.qml",
+    "permissions": [
+        "settings_read",
+        "settings_write",
+        "process"
+    ]
+}
