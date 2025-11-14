@@ -5,8 +5,6 @@
     "version": "1.0.0",
     "author": "Enosh Osano Misonge",
     "type": "widget",
-    "capabilities": ["system", "settings"],
-    "firstParty": true,
     "component": "./SystemMenuWidget.qml",
     "icon": "menu",
     "settings": "./SystemMenuSettings.qml",
