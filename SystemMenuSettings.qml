@@ -6,8 +6,20 @@ import qs.Modules.Plugins
 
 PluginSettings {
     id: root
-
-    pluginId: SystemMenuService.pluginId
+    pluginId: "systemMenu"
+    
+    //property var pluginService: null
+    readonly property var defaults: ({
+        terminalApp: "alacritty",
+        setupInstalled: false,
+        showIcon: true,
+        showText: true
+    })
+    
+    property string terminalApp: defaults.terminalApp
+    property string setupInstalled: defaults.setupInstalled
+    property string showIcon: defaults.showIcon
+    property string showText: defaults.showText
 
     StyledText {
         width: parent.width
@@ -35,29 +47,29 @@ PluginSettings {
         settingKey: "terminalApp"
         label: "Terminal Application"
         description: "Choose terminal to launch scripts."
-        defaultValue: SystemMenuService.defaults.terminalApp
-        placeholder: SystemMenuService.defaults.terminalApp
+        defaultValue: root.terminalApp
+        placeholder: root.terminalApp
     }
 
     ToggleSetting {
         settingKey: "setupInstalled"
         label: "Turn off to activate toogle for plugin setup."
         description: "Displays the download icon in the popout"
-        defaultValue: false
+        defaultValue: root.setupInstalled
     }
 
     ToggleSetting {
         settingKey: "showIcon"
         label: "Show Icon"
         description: "Display the plugin icon in the panel"
-        defaultValue: true
+        defaultValue: root.showIcon
     }
 
     ToggleSetting {
         settingKey: "showText"
         label: "Show Text"
         description: "Display the plugin's label text in the panel"
-        defaultValue: true
+        defaultValue: root.showText
     }
 
     Column {
@@ -101,4 +113,39 @@ PluginSettings {
             }
         }
     }
+
+    function saveSettings(key, value) {
+        if (pluginService) {
+            pluginService.savePluginData("systemMenu", key, value)
+        }
+    }
+
+    // function loadSettings(key, defaultValue) {
+    //     if (pluginService) {
+    //         return pluginService.loadPluginData("systemMenu", key, defaultValue)
+    //     }
+    //     return defaultValue
+    // }
+
+    function loadSettings() {
+        const load = key => PluginService.loadPluginData(pluginId, key) || defaults[key];
+        terminalApp = load("terminalApp");
+        setupInstalled = load("setupInstalled");
+        showIcon = load("showIcon");
+        showText = load("showText");
+    }
+
+    Component.onCompleted: {
+        loadSettings();
+    }
+
+    Connections {
+        target: PluginService
+        function onPluginDataChanged(pluginId) {
+            if (pluginId === root.pluginId) {
+                loadSettings();
+            }
+        }
+    }
+
 }

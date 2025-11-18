@@ -11,21 +11,20 @@ PluginComponent {
 
     /* ----------  plugin config  ---------- */
     property var  pluginService: null
-    property string terminalApp: pluginData.terminalApp !== undefined ? pluginData.terminalApp : "alacritty"
+    property string terminalApp: pluginData.terminalApp ?? "alacritty"
 
     property string pluginId: "systemMenu"
     property string displayIcon: "menu"
     property string displayText: "System"
-    property bool   showIcon: pluginData.showIcon !== undefined ? pluginData.showIcon : true
-    property bool   showText: pluginData.showText !== undefined ? pluginData.showText : true
+    property bool   showIcon: pluginData.showIcon ?? true
+    property bool   showText: pluginData.showText ?? true
 
     /* ----------  menu data  ---------- */
     property var currentItems: topLevelMenu
     property var menuStack:    ([])
 
     property string currentTitle: "System Menu"
-    // Whether the plugin has been set up/installed. Can be provided by pluginData
-    property bool setupInstalled: pluginData && pluginData.setupInstalled !== undefined ? pluginData.setupInstalled : false
+    property bool setupInstalled: pluginData.setupInstalled ?? false
 
     property var topLevelMenu: [
         { name: "Learn",   icon: "school", submenu: [
@@ -55,9 +54,24 @@ PluginComponent {
             { name: "Secureboot", icon: "settings", actionCmd: "Script:dms-sm-setup-secureboot" },
             { name: "Dns",   icon: "settings", actionCmd: "Script:dms-sm-setup-dns" }
         ]},
+        { name: "Setup",  icon: "settings", submenu: [
+            { name: "Security", icon: "settings", submenu: [
+                { name: "Apparmor", icon: "settings", actionCmd: "Script:dms-sm-setup-apparmor" },
+                { name: "Secureboot", icon: "settings", actionCmd: "Script:dms-sm-setup-secureboot" },
+                { name: "Fingerprint",   icon: "settings", actionCmd: "Script:dms-sm-setup-fingerprint" },
+                { name: "Fido2",   icon: "settings", actionCmd: "Script:dms-sm-setup-fido2" }
+            ]},
+            { name: "Power",   icon: "settings", submenu: [
+                { name: "Power-saver",   icon: "settings", actionCmd: "Script:dms-sm-setup-power powersaver" },
+                { name: "Balanced",   icon: "settings", actionCmd: "Script:dms-sm-setup-power balanced" },
+                { name: "Performance",   icon: "settings", actionCmd: "Script:dms-sm-setup-power performance" }
+            ]},
+            { name: "Dns", icon: "settings", actionCmd: "Script:dms-sm-setup-dns" }
+        ]},
         { name: "Install", icon: "download", submenu: [
             { name: "Package", icon: "download", actionCmd: "Script:dms-sm-pkg-install" },
             { name: "AUR",     icon: "download", actionCmd: "Script:dms-sm-pkg-aur-install" },
+            { name: "Development", icon: "download", actionCmd: "Script:dms-sm-install-service" },
             { name: "Service", icon: "download", actionCmd: "Script:dms-sm-install-service" }
         ]},
         { name: "Remove", icon: "download", submenu: [
@@ -180,15 +194,20 @@ PluginComponent {
         ViewToggleButton {
             id: pluginSetup
             anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+            anchors.leftMargin: Theme.spacingM
             iconName: "download"
             isActive: false
             onClicked: root.pluginSetupCmd()
-            visible: root.setupInstalled = false
+            // show the setup/download button when setup is NOT installed and still in main menu
+            visible: !root.setupInstalled && currentTitle === "System Menu"
         }
 
         ViewToggleButton {
             id: backBtn
             anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+            anchors.leftMargin: Theme.spacingM
             iconName: "arrow_back"
             isActive: false
             onClicked: root.goBack()
