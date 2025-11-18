@@ -1,9 +1,10 @@
 # DMS System Menu
 
 <div align="center">
-    <img src="assets/Screenshot.png" alt="DmsSystemMenu" width="200">
-    <img src="assets/Screenshot1.png" alt="DmsSystemMenu" width="200>
+    <img src="assets/Screenshot.png" alt="DmsSystemMenu">
+    <img src="assets/Screenshot1.png" alt="DmsSystemMenu">
 </div>
+
 
 Docker container monitoring and management plugin for [DankMaterialShell](https://danklinux.com/)
 
