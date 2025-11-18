@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e
+
+echo -e "\e[32mUpdate DmsSystemMenu Plugin\e[0m"
+
+export PLUGIN_PATH = "~/.config/DankMaterialShell/plugins/DmsSystemMenu"
+
+git -C $PLUGIN_PATH pull --autostash
+git -C $PLUGIN_PATH diff --check || git -C $PLUGIN_PATH reset --merge

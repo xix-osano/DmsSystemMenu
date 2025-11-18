@@ -1,4 +1,0 @@
-#!/bin/bash
-
-shellos-refresh-config hypr/hypridle.conf
-shellos-restart-hypridle

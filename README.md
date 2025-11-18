@@ -1,159 +1,102 @@
-# System Menu Widget
+# DMS System Menu
 
-A compact system menu widget for the Quickshell/DMS panel providing native popup menus for common system tasks, settings, installation, and utilities. No external walker UI required — all menu interactions happen within the panel.
+<div align="center>
+    <img src="assets/Screenshot.png" alt="DmsSystemMenu" width="200">
+    <img src="assets/Screenshot1.png" alt="DmsSystemMenu" width="200>
+</div>
+
+Docker container monitoring and management plugin for [DankMaterialShell](https://danklinux.com/)
+
+Inspired by [Omarchy Walker Menu](https://github.com/basecamp/omarchy/)
+
+
+A compact System Menu plugin and helper scripts for quick system tasks (screenshots, screen recording, sharing, package actions, updates, and more).
+
+This repository contains the UI/Qt Quick parts of the plugin and a set of helper shell scripts in `bin/` that the plugin can invoke.
 
 ## Features
 
-- **Native popup menu** — stack-driven menu UI built into the widget
-- **Helper script support** — executes system utilities from `bin/` directory:
-  - Screenshots and screen recording
-  - File/clipboard sharing via LocalSend
-  - Editor launching
-  - System lock/screensaver/suspend/reboot
-  - Package management (pacman/AUR)
-  - Config updates and restarts
-  - And many more...
-- **Service-based architecture** — `SystemMenuService.qml` provides high-level wrappers and safe command execution
+- Compact panel/plugin providing common actions (install, update, power, screenshots, screenrecord, share, editor, terminal shortcuts).
+- Helper scripts in `bin/` for Wayland-friendly screenshots/screen recording and Hyprland integration.
+- Simple installer script to copy scripts into a per-user bin directory and make them executable.
+
+## Machine requirements
+
+- Grub bootloader (if using the setup features listed here)
+- Btrfs filesystem (recommended for snapshot workflows)
+- snapper (optional - used for snapshot capture)
+
+## Recommended packages
+
+- gum (CLI UI helper)
+- localsend (file sharing)
+- plocate
+-fzf
+
+Other optional dependencies used by scripts (Wayland-focused): `grim`, `slurp`, `wl-copy`, `wf-recorder`, `fzf`, `hyprctl`, `hypridle`, and a terminal emulator such as `kitty` or `alacritty`.
 
 ## Installation
 
-### 1. Copy Plugin to DMS
+1. Easiest: run the provided installer script from the repository root. It copies scripts from `bin/` to `~/.local/share/dms-sm-plugin/bin` and attempts to make them executable:
 
-```bash
-# Copy to your DMS plugins directory
-cp -r /path/to/dms-system-menu ~/.config/DankMaterialShell/plugins/SystemMenu
-```
+	./dms-sm-setup.sh
 
-### 2. Install Helper Scripts
+	The installer will warn if the install directory is not on your PATH and will try to install a few optional packages on Arch systems (via `pacman`).
 
-Run the installation script to copy all helpers to `$HOME/.local/bin`:
+2. Manual (alternate): copy the `bin/` folder contents to a location in your PATH or to your systemMenu script location (for example `~/.config/systemMenu/scripts/`) and ensure they are executable.
 
-```bash
-cd ~/.config/DankMaterialShell/plugins/SystemMenu
-bash install.sh
-```
+	mkdir -p ~/.local/share/dms-sm-plugin/bin
+	cp bin/* ~/.local/share/dms-sm-plugin/bin/
+	chmod +x ~/.local/share/dms-sm-plugin/bin/*
 
-This will:
-- Create `$HOME/.local/bin` if it doesn't exist
-- Copy all scripts from `bin/` directory
-- Make them executable
-- Verify installation
+3. Make sure the chosen install directory is in your PATH so the plugin can invoke the helper scripts.
 
-**Important:** Ensure `$HOME/.local/bin` is in your shell's `$PATH`. Add this to your shell profile (e.g., `~/.bashrc`, `~/.zshrc`):
+## Usage
 
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-```
+- The plugin UI files are: `SystemMenuWidget.qml`, `SystemMenuService.qml` and `SystemMenuSettings.qml`.
+- From the Settings (`SystemMenuSettings.qml`) you can choose the terminal application (`terminalApp`) and enable the setup/download popout (use the topleft download button in the popout to install scripts).
+- For Hyprland users: add a floating config entry with title `^DMS_SM$` as noted in the settings UI so the menu floats correctly.
 
-### 3. Reload Panel
+## Included helper scripts (in `bin/`)
 
-Restart your panel process to load the plugin:
+The repository's `bin/` folder contains the following helper scripts (brief categories):
 
-```bash
-# Restart DMS panel
-systemctl --user restart dms
-# or
-pkill dms && dms &
-```
+- dms-sm-cmd-missing — helper to report missing commands/dependencies
+- dms-sm-editor — open an editor with a file
+- dms-sm-launch-editor — launch a configured editor
+- dms-sm-launch-terminal — open a terminal
+- dms-sm-pkg-add — package helper (add)
+- dms-sm-pkg-aur-accessible — AUR accessibility helper
+- dms-sm-pkg-aur-install — install packages from AUR
+- dms-sm-pkg-install — install packages
+- dms-sm-pkg-missing — detect missing packages
+- dms-sm-pkg-present — check package presence
+- dms-sm-pkg-remove — remove package
+- dms-sm-present — present/announce a message
+- dms-sm-screenrecord — screen recording helper (wf-recorder)
+- dms-sm-screenshot — take screenshots (grim/slurp)
+- dms-sm-setup-apparmor — apparmor setup helper
+- dms-sm-setup-dns — dns setup helper
+- dms-sm-setup-secureboot — secureboot setup helper
+- dms-sm-share — share files/clipboard (localsend)
+- dms-sm-show-done — quick notification helper
+- dms-sm-show-logo — show logo helper
+- dms-sm-snapshot — create snapshots (Btrfs/snapper)
+- dms-sm-terminal — open terminal helper
+- dms-sm-update — update helper
+- dms-sm-update-firmware — firmware update helper
+- dms-sm-update-perform — perform update
+- dms-sm-update-plugin — update plugin helper
 
-## Architecture
-
-### Key Files
-
-- **SystemMenuWidget.qml** — Main widget component; handles menu UI and dispatch logic
-- **SystemMenuService.qml** — Singleton service providing safe command execution wrappers
-- **SystemMenuSettings.qml** — Settings UI for widget configuration
-- **bin/** — Helper scripts (shellos-* commands)
-- **install.sh** — Installation script to set up helpers in `$HOME/.local/bin`
-
-### Service Wrappers
-
-`SystemMenuService` provides type-safe methods for common operations:
-
-```qml
-SystemMenuService.takeScreenshot(mode, processing)    // "smart"|"region"|"fullscreen"
-SystemMenuService.screenrecord(scope, withAudio, withWebcam)
-SystemMenuService.share(mode)                         // "clipboard"|"file"|"folder"
-SystemMenuService.launchEditor(path)
-SystemMenuService.lockScreen()
-SystemMenuService.runUpdate()
-SystemMenuService.launchScreensaver(force)
-// and more...
-```
-
-## Requirements
-
-- **Quickshell** panel runtime with QML support
-- **Qt 6.0+** with QtQuick.Controls
-- **Helper scripts** installed via `install.sh` (see Installation above)
-- **System tools** — scripts depend on: `grim`, `slurp`, `hyprctl`, `jq`, `kitty`, `systemd-run`, `notify-send`, etc.
-- **PATH setup** — `$HOME/.local/bin` must be in the panel process's PATH
+For details about each script and their options, see `bin/README.md` which documents usage and dependencies.
 
 ## Troubleshooting
 
-### Scripts not found
+- Screenshots not working: ensure `grim`, `slurp`, and `wl-copy` are installed and that you're running a Wayland session (`echo $XDG_SESSION_TYPE`).
+- Screen recording fails: install `wf-recorder` and check `hyprctl` for Hyprland.
+- File sharing requires `localsend` and `fzf` for interactive file selection.
 
-**Problem:** Menu actions fail silently or log "command not found"
+## Contributing
 
-**Solution:**
-1. Verify installation: `ls -la $HOME/.local/bin/shellos-*`
-2. Check PATH: `echo $PATH | grep ".local/bin"`
-3. Restart panel after adding to PATH
-4. Ensure panel is restarted, not just reloaded
-
-### Menu doesn't appear
-
-**Problem:** Clicking the System pill does nothing
-
-**Solution:**
-1. Check panel logs: `journalctl --user -u dms -f`
-2. Verify plugin is loaded: check DMS plugin directory
-3. Restart panel: `systemctl --user restart dms`
-
-### Helper not working
-
-**Problem:** Specific helper command fails (e.g., screenshot doesn't work)
-
-**Solution:**
-1. Test manually: `shellos-cmd-screenshot smart slurp`
-2. Check for missing dependencies: `which grim slurp hyprctl jq`
-3. Review helper script: `cat $HOME/.local/bin/shellos-cmd-screenshot`
-4. Check system logs: `journalctl -xe`
-
-## Development
-
-### Running Tests
-
-A smoke-test file is provided to validate service functions:
-
-```bash
-# Load SystemMenuServiceTest.qml in a QML viewer
-qml6 SystemMenuServiceTest.qml
-```
-
-### Adding New Menu Items
-
-Edit `mainMenu` in `SystemMenuWidget.qml`:
-
-```qml
-{ text: "My Action", icon: "icon_name", actionCmd: "command-to-run" }
-```
-
-Or use service wrappers in the dispatch logic.
-
-## Changelog
-
-### v1.0.0 (Nov 14, 2025)
-
-- Migrated from external `systemmenu.sh` walker script to native QML menu
-- Implemented `SystemMenuService` singleton for safe command execution
-- Added installation script (`install.sh`) for easy setup
-- Full plugin compatibility with DMS/Quickshell architecture
-- Refactored menu dispatch to use typed service methods
-
----
-
-**Author:** Enosh Osano Misonge  
-**License:** See LICENSE file  
-**Generated:** November 14, 2025
+Contributions are welcome. Please open issues or pull requests describing feature requests or fixes.
 

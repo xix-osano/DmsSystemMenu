@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# Simple screenshot tool using grim and slurp (Wayland)
+# Usage: cmd-screenshot [mode] [processing]
+# Modes: region, fullscreen, smart (default)
+# Processing: slurp (default - interactive edit), direct (no edit)
+
+[[ -f ~/.config/user-dirs.dirs ]] && source ~/.config/user-dirs.dirs
+OUTPUT_DIR="${SCREENSHOT_DIR:-${XDG_PICTURES_DIR:-$HOME/Pictures}}"
+
+if [[ ! -d "$OUTPUT_DIR" ]]; then
+  mkdir -p "$OUTPUT_DIR" || {
+    echo "Failed to create screenshot directory: $OUTPUT_DIR"
+    exit 1
+  }
+fi
+
+MODE="${1:-smart}"
+PROCESSING="${2:-slurp}"
+
+# Select region
+case "$MODE" in
+  fullscreen)
+    SELECTION=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true) | "\(.x),\(.y) \((.width / .scale) | floor)x\((.height / .scale) | floor)"' 2>/dev/null)
+    ;;
+  region|*)
+    SELECTION=$(slurp 2>/dev/null)
+    ;;
+esac
+
+[ -z "$SELECTION" ] && exit 0
+
+TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
+OUTPUT_FILE="$OUTPUT_DIR/screenshot-$TIMESTAMP.png"
+
+# Capture screenshot
+if command -v grim &> /dev/null; then
+  grim -g "$SELECTION" "$OUTPUT_FILE"
+elif command -v import &> /dev/null; then
+  # Fallback to ImageMagick
+  import "$OUTPUT_FILE"
+else
+  echo "No screenshot tool found (grim or ImageMagick required)"
+  exit 1
+fi
+
+# Copy to clipboard if wl-copy is available
+if command -v wl-copy &> /dev/null && [[ -f "$OUTPUT_FILE" ]]; then
+  wl-copy < "$OUTPUT_FILE"
+fi
+
+echo "Screenshot saved: $OUTPUT_FILE"
+exit 0

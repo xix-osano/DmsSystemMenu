@@ -1,13 +1,15 @@
 {
-    "id": "systemmenu",
+    "id": "systemMenu",
     "name": "System Menu",
-    "description": "A launcher-style system menu that exposes common system tasks and installs",
+    "description": "Displays system information and quick access to system functions.",
     "version": "1.0.0",
     "author": "Enosh Osano Misonge",
     "type": "widget",
+    "capabilities": ["system-menu", "dankbar-widget"],
     "component": "./SystemMenuWidget.qml",
     "icon": "menu",
     "settings": "./SystemMenuSettings.qml",
+    "requires_dms": ">=0.3.0",
     "permissions": [
         "settings_read",
         "settings_write",

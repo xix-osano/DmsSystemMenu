@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Simple file sharing tool using LocalSend
+# Usage: cmd-share [mode] [files...]
+# Modes: clipboard, file, folder
+
+if (($# == 0)); then
+  echo "Usage: cmd-share [clipboard|file|folder] [files...]"
+  exit 1
+fi
+
+MODE="$1"
+shift
+
+if ! command -v localsend &> /dev/null; then
+  echo "LocalSend not found. Install it to enable file sharing."
+  exit 1
+fi
+
+if [[ $MODE == "clipboard" ]]; then
+  # Share clipboard content
+  TEMP_FILE=$(mktemp --suffix=.txt)
+  if command -v wl-paste &> /dev/null; then
+    wl-paste >"$TEMP_FILE"
+  elif command -v xclip &> /dev/null; then
+    xclip -selection clipboard -o >"$TEMP_FILE"
+  else
+    echo "No clipboard tool found"
+    exit 1
+  fi
+  FILES="$TEMP_FILE"
+else
+  if (($# > 0)); then
+    FILES="$*"
+  else
+    if [[ $MODE == "folder" ]]; then
+      # Pick a single folder
+      FILES=$(find "$HOME" -type d 2>/dev/null | fzf 2>/dev/null)
+    else
+      # Pick one or more files
+      FILES=$(find "$HOME" -type f 2>/dev/null | fzf --multi 2>/dev/null)
+    fi
+    [ -z "$FILES" ] && exit 0
+  fi
+fi
+
+# Send files
+echo "Sharing files..."
+localsend --headless send $FILES 2>/dev/null &
+
+exit 0

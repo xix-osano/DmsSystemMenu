@@ -1,3 +1,0 @@
-#!/bin/bash
-
-exec setsid kitty --class=Shellos -o font.size=9 -e -e bash -c 'fastfetch; read -n 1 -s'

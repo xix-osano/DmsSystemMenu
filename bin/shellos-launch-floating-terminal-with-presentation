@@ -1,4 +1,0 @@
-#!/bin/bash
-
-cmd="$*"
-exec setsid kitty --class=Shellos  --title=Shellos -e bash -c "shellos-show-logo; $cmd; shellos-show-done"

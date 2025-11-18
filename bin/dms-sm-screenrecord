@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Simple screen recording tool using wf-recorder
+# Usage: cmd-screenrecord [scope] [--with-audio] [--with-webcam]
+# Scope: region, output (default: region)
+
+[[ -f ~/.config/user-dirs.dirs ]] && source ~/.config/user-dirs.dirs
+OUTPUT_DIR="${SCREENRECORD_DIR:-${XDG_VIDEOS_DIR:-$HOME/Videos}}"
+
+if [[ ! -d "$OUTPUT_DIR" ]]; then
+  mkdir -p "$OUTPUT_DIR" || {
+    echo "Failed to create recordings directory: $OUTPUT_DIR"
+    exit 1
+  }
+fi
+
+SCOPE="${1:-region}"
+shift
+
+AUDIO_FLAG=""
+WEBCAM_FLAG=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --with-audio) AUDIO_FLAG="-a" ;;
+    --with-webcam) WEBCAM_FLAG="--with-webcam" ;;
+  esac
+  shift
+done
+
+if ! command -v wf-recorder &> /dev/null; then
+  echo "wf-recorder not found. Install it to enable screen recording."
+  exit 1
+fi
+
+TIMESTAMP=$(date +'%Y-%m-%d_%H-%M-%S')
+OUTPUT_FILE="$OUTPUT_DIR/recording-$TIMESTAMP.mp4"
+
+# Determine output device
+if [[ "$SCOPE" == "output" ]]; then
+  OUTPUT=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .name' 2>/dev/null)
+  if [[ -z "$OUTPUT" ]]; then
+    echo "Failed to determine active output"
+    exit 1
+  fi
+  RECORDER_ARGS="-o $OUTPUT"
+else
+  # Region mode
+  SELECTION=$(slurp 2>/dev/null)
+  [ -z "$SELECTION" ] && exit 0
+  RECORDER_ARGS="-g $SELECTION"
+fi
+
+# Start recording
+echo "Recording to: $OUTPUT_FILE"
+wf-recorder $AUDIO_FLAG $RECORDER_ARGS -f "$OUTPUT_FILE"
+
+exit 0

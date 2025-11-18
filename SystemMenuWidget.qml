@@ -5,369 +5,353 @@ import qs.Common
 import qs.Services
 import qs.Widgets
 import qs.Modules.Plugins
-import SystemMenuService 1.0
 
 PluginComponent {
     id: root
 
+    /* ----------  plugin config  ---------- */
+    property var  pluginService: null
+    property string terminalApp: pluginData.terminalApp !== undefined ? pluginData.terminalApp : "alacritty"
+
+    property string pluginId: "systemMenu"
     property string displayIcon: "menu"
     property string displayText: "System"
-    property bool showIcon: true
-    property bool showText: true
-    // Process used to run helper commands (shellos-* and other system actions).
-    Process {
-        id: actionProcess
-        running: false
+    property bool   showIcon: pluginData.showIcon !== undefined ? pluginData.showIcon : true
+    property bool   showText: pluginData.showText !== undefined ? pluginData.showText : true
 
-        onExited: function(exitCode, exitStatus) {
-            if (exitCode !== 0) {
-                console.warn("systemmenu: command exited with code", exitCode)
-            }
-        }
-    }
+    /* ----------  menu data  ---------- */
+    property var currentItems: topLevelMenu
+    property var menuStack:    ([])
 
-    // Simple stack-driven menu so the widget presents choices natively instead of launching walker.
-    property var menuStack: []
-    property var currentItems: []
-    property string currentTitle: "Go"
+    property string currentTitle: "System Menu"
+    // Whether the plugin has been set up/installed. Can be provided by pluginData
+    property bool setupInstalled: pluginData && pluginData.setupInstalled !== undefined ? pluginData.setupInstalled : false
 
-    // Define menus (command strings will be executed via bash -lc)
-    property var mainMenu: [
-        { text: "Learn", icon: "learn", submenu: [
-            { text: "Hyprland", actionCmd: "xdg-open 'https://wiki.hypr.land/'" },
-            { text: "Arch", actionCmd: "xdg-open 'https://wiki.archlinux.org/title/Main_page'" },
-            { text: "Neovim", actionCmd: "xdg-open 'https://www.lazyvim.org/keymaps'" },
-            { text: "Bash", actionCmd: "xdg-open 'https://devhints.io/bash'" },
-            { text: "Dank", actionCmd: "xdg-open 'https://danklinux.com/docs/'" }
+    property var topLevelMenu: [
+        { name: "Learn",   icon: "school", submenu: [
+            { name: "Hyprland", icon: "school", actionCmd: "Web:https://wiki.hypr.land/" },
+            { name: "Arch",     icon: "school", actionCmd: "Web:https://wiki.archlinux.org/title/Main_page" },
+            { name: "Neovim",   icon: "school", actionCmd: "Web:https://www.lazyvim.org/keymaps" },
+            { name: "Bash",     icon: "school", actionCmd: "Web:https://devhints.io/bash" },
+            { name: "Dank",     icon: "school", actionCmd: "Web:https://danklinux.com/docs/" }
         ]},
-        { text: "Trigger", icon: "trigger", submenu: [
-            { text: "Capture", submenu: [
-                { text: "Screenshot", submenu: [
-                    { text: "Snap screenarea", actionCmd: "grimblast copy area" },
-                    { text: "Snap fullscreen", actionCmd: "grimblast copy screen" }
-                ]},
-                { text: "Screenrecord", submenu: [
-                    { text: "Region", actionCmd: "shellos-cmd-screenrecord" },
-                    { text: "Region + Audio", actionCmd: "shellos-cmd-screenrecord region --with-audio" },
-                    { text: "Display", actionCmd: "shellos-cmd-screenrecord output" },
-                    { text: "Display + Audio", actionCmd: "shellos-cmd-screenrecord output --with-audio" },
-                    { text: "Display + Webcam", actionCmd: "shellos-cmd-screenrecord output --with-audio --with-webcam" }
-                ]}
-            ]},
-            { text: "Share", submenu: [
-                { text: "Clipboard", actionCmd: "shellos-cmd-share clipboard" },
-                { text: "File", actionCmd: "shellos-cmd-share file" },
-                { text: "Folder", actionCmd: "shellos-cmd-share folder" }
-            ]},
-            { text: "Toggle", submenu: [
-                { text: "Screensaver", actionCmd: "shellos-toggle-screensaver" },
-                { text: "Idle Lock", actionCmd: "shellos-toggle-idle" }
-            ]}
+        { name: "Capture", icon: "photo_camera", submenu: [
+            { name: "Screenshot Region",    icon: "photo_camera", actionCmd: "Script:dms-sm-screenshot region" },
+            { name: "Screenshot Fullscreen",icon: "photo_camera", actionCmd: "Script:dms-sm-screenshot fullscreen" },
+            { name: "Snapshot",             icon: "photo_camera", actionCmd: "Script:dms-sm-snapshot" }
         ]},
-        { text: "Style", submenu: [
-            { text: "Hyprland", actionCmd: "shellos-launch-editor ~/.config/hypr/hyprland.conf" },
-            { text: "Screensaver", actionCmd: "shellos-launch-editor ~/.config/shellos/branding/screensaver.txt" },
-            { text: "About", actionCmd: "shellos-launch-editor ~/.config/shellos/branding/about.txt" }
+        { name: "Share",   icon: "share", submenu: [
+            { name: "Share Clipboard", icon: "share", actionCmd: "Script:dms-sm-share clipboard" },
+            { name: "Share File",      icon: "share", actionCmd: "Script:dms-sm-share file" },
+            { name: "Share Folder",    icon: "share", actionCmd: "Script:dms-sm-share folder" }
         ]},
-        { text: "Setup", submenu: [
-            { text: "DNS", actionCmd: "shellos-setup-dns" },
-            { text: "Security", submenu: [
-                { text: "SecureBoot", actionCmd: "shellos-setup-secureboot" },
-                { text: "AppArmor", actionCmd: "shellos-setup-apparmor" },
-                { text: "Fingerprint", actionCmd: "shellos-setup-fingerprint" },
-                { text: "Fido2", actionCmd: "shellos-setup-fido2" }
-            ]},
-            { text: "Config", submenu: [
-                { text: "Hyprland", actionCmd: "shellos-launch-editor ~/.config/hypr/hyprland.conf" },
-                { text: "Hypridle", actionCmd: "shellos-launch-editor ~/.config/hypr/hypridle.conf && shellos-restart-hypridle" },
-                { text: "Walker", actionCmd: "shellos-launch-editor ~/.config/walker/config.toml && shellos-restart-walker" }
-            ]}
+        { name: "Config",  icon: "settings", submenu: [
+            { name: "Edit Hyprland", icon: "settings", actionCmd: "Edit:dms-sm-editor ~/.config/hypr/hyprland.conf" },
+            { name: "Edit Hypridle", icon: "settings", actionCmd: "Edit:dms-sm-editor ~/.config/hypr/hypridle.conf" },
+            { name: "Edit Waybar",   icon: "settings", actionCmd: "Edit:dms-sm-editor ~/.config/waybar/config" }
         ]},
-        { text: "Install", submenu: [
-            { text: "Package", actionCmd: "shellos-pkg-install" },
-            { text: "AUR", actionCmd: "shellos-pkg-aur-install" },
-            { text: "Service", submenu: [
-                { text: "Dropbox", actionCmd: "shellos-install-dropbox" },
-                { text: "Tailscale", actionCmd: "shellos-install-tailscale" },
-                { text: "Bitwarden", actionCmd: "bash -lc \"present_terminal 'echo Installing Bitwarden...'; sudo pacman -S --noconfirm bitwarden bitwarden-cli\"" }
-            ]}
+        { name: "Security",  icon: "settings", submenu: [
+            { name: "Apparmor", icon: "settings", actionCmd: "Script:dms-sm-setup-apparmor" },
+            { name: "Secureboot", icon: "settings", actionCmd: "Script:dms-sm-setup-secureboot" },
+            { name: "Dns",   icon: "settings", actionCmd: "Script:dms-sm-setup-dns" }
         ]},
-        { text: "Remove", submenu: [
-            { text: "Package", actionCmd: "shellos-pkg-remove" },
-            { text: "Web App", actionCmd: "shellos-webapp-remove" },
-            { text: "TUI", actionCmd: "shellos-tui-remove" }
+        { name: "Install", icon: "download", submenu: [
+            { name: "Package", icon: "download", actionCmd: "Script:dms-sm-pkg-install" },
+            { name: "AUR",     icon: "download", actionCmd: "Script:dms-sm-pkg-aur-install" },
+            { name: "Service", icon: "download", actionCmd: "Script:dms-sm-install-service" }
         ]},
-        { text: "Update", submenu: [
-            { text: "Shellos", actionCmd: "shellos-update" },
-            { text: "Config", actionCmd: "shellos-refresh-hyprland" },
-            { text: "Process", submenu: [
-                { text: "Hypridle", actionCmd: "shellos-restart-hypridle" },
-                { text: "Walker", actionCmd: "shellos-restart-walker" }
-            ]}
+        { name: "Remove", icon: "download", submenu: [
+            { name: "Package", icon: "download", actionCmd: "Script:dms-sm-pkg-install" },
+            { name: "AUR",     icon: "download", actionCmd: "Script:dms-sm-pkg-aur-install" },
+            { name: "Service", icon: "download", actionCmd: "Script:dms-sm-install-service" }
         ]},
-        { text: "System", submenu: [
-            { text: "Lock", actionCmd: "shellos-lock-screen" },
-            { text: "Screensaver", actionCmd: "shellos-launch-screensaver force" },
-            { text: "Suspend", actionCmd: "systemctl suspend" },
-            { text: "Restart", actionCmd: "shellos-state clear re*-required && systemctl reboot --no-wall" },
-            { text: "Shutdown", actionCmd: "shellos-state clear re*-required && systemctl poweroff --no-wall" }
+        { name: "Update", icon: "download", submenu: [
+            { name: "System", icon: "download", actionCmd: "Script:dms-sm-update" },
+            { name: "Firmware",     icon: "download", actionCmd: "Script:dms-sm-update-firmware" },
+            { name: "DMSSystemMenu Plugin", icon: "download", actionCmd: "Script:dms-sm-update-plugin" }
         ]}
     ]
 
-    function runCommand(cmd) {
-        if (!cmd) return
-        
-        // Dispatch to appropriate service method based on command prefix
-        if (cmd.startsWith("shellos-cmd-screenshot")) {
-            var parts = cmd.split(" ")
-            var mode = parts[1] || "smart"
-            var processing = parts[2] || "slurp"
-            SystemMenuService.takeScreenshot(mode, processing)
-        } else if (cmd.startsWith("shellos-cmd-screenrecord")) {
-            var hasAudio = cmd.includes("--with-audio")
-            var hasWebcam = cmd.includes("--with-webcam")
-            var scope = cmd.includes("output") ? "output" : "region"
-            SystemMenuService.screenrecord(scope, hasAudio, hasWebcam)
-        } else if (cmd.startsWith("shellos-cmd-share")) {
-            var shareMode = cmd.split(" ")[1] || "clipboard"
-            SystemMenuService.share(shareMode)
-        } else if (cmd.startsWith("shellos-launch-editor")) {
-            var filePath = cmd.substring("shellos-launch-editor".length).trim()
-            SystemMenuService.launchEditor(filePath)
-        } else if (cmd === "shellos-lock-screen") {
-            SystemMenuService.lockScreen()
-        } else if (cmd.startsWith("shellos-launch-screensaver")) {
-            var force = cmd.includes("force")
-            SystemMenuService.launchScreensaver(force)
-        } else if (cmd === "shellos-update") {
-            SystemMenuService.runUpdate()
-        } else if (cmd === "shellos-pkg-install") {
-            SystemMenuService.presentTerminalWithPresentation("shellos-pkg-install")
-        } else if (cmd === "shellos-pkg-aur-install") {
-            SystemMenuService.presentTerminalWithPresentation("shellos-pkg-aur-install")
-        } else if (cmd === "shellos-pkg-remove") {
-            SystemMenuService.presentTerminalWithPresentation("shellos-pkg-remove")
-        } else {
-            // Fallback: run directly via service
-            SystemMenuService.execDetached(["sh", "-c", cmd])
-        }
-        
-        if (menuPopup.visible) menuPopup.close()
+    /* ----------  plugin interface  ---------- */
+    signal stacksChanged()
+
+    Component.onCompleted: {
+        console.log(pluginId, ": Plugin loaded.");
     }
 
-    function navigateTo(menu, title) {
-        menuStack.push({items: currentItems, title: currentTitle})
-        currentItems = menu
-        currentTitle = title || ""
+    /* ----------  required by Quickshell  ---------- */
+    function getStacks(query) {
+        if (!query || query.length === 0) return topLevelMenu
+
+        const q = query.toLowerCase()
+        return topLevelMenu.filter(stack =>
+            stack.name.toLowerCase().includes(q) ||
+            (stack.submenu && stack.submenu.some(it => it.name.toLowerCase().includes(q)))
+        )
     }
 
+    /* ----------  navigation helpers  ---------- */
+    function navigateTo(submenu, title) {
+        menuStack.push(currentItems)
+        currentItems = submenu
+        currentTitle = title
+    }
     function goBack() {
-        if (menuStack.length === 0) {
-            menuPopup.close()
-            return
+        if (!menuStack.length) { menuPopout.close(); return }
+        currentItems = menuStack.pop()
+        currentTitle = menuStack.length ? currentItems[0].name : "System Menu"
+    }
+
+    /* ----------  command dispatcher  ---------- */
+    function executeCommand(cmdString) {
+        if (!cmdString) { console.warn("SystemMenu: empty command"); return }
+
+        const parts = cmdString.split(":")
+        const type  = parts[0]
+        const data  = parts.slice(1).join(":")
+
+        switch (type) {
+        case "Web":
+            // Use direct exec to avoid an extra shell and quoting issues
+            Quickshell.execDetached(["xdg-open", data])
+            toast("Opened: " + data)
+            break
+        case "Edit":
+            menuPopout.close()
+            // Call launcher with the single argument (the editor command+path)
+            Quickshell.execDetached(["dms-sm-launch-editor", data])
+            break
+        case "Script":
+            menuPopout.close()
+            // Call dms-sm-terminal with terminalApp tokens, a separator "--", then the script+args
+            var argv = ["dms-sm-terminal"].concat(splitArgs(root.terminalApp)).concat(["--"]).concat(splitArgs(data))
+            Quickshell.execDetached(argv)
+            toast("Script executed: " + data)
+            break
+        default:
+            toast("Unknown action: " + type)
         }
-        var prev = menuStack.pop()
-        currentItems = prev.items
-        currentTitle = prev.title
     }
 
-    function showMainMenu() {
-        menuStack = []
-        currentTitle = "Go"
-        currentItems = mainMenu
-        menuPopup.open()
+    function toast(msg) {
+        if (typeof ToastService !== "undefined") ToastService.showInfo("SystemMenu", msg)
+        else console.log("SystemMenu toast:", msg)
     }
 
-    // Native popup to render the currentItems stack
-    Popup {
-        id: menuPopup
-        modal: true
-        focus: true
-        width: 360
-        height: 420
-        closePolicy: Popup.CloseOnEscape
+    function launchTerminal(terminalApp) {
+        // Use provided terminalApp argument or fallback to configured value
+        var app = terminalApp || root.terminalApp
+        if (!app) { toast("No terminal configured"); return }
 
-        contentItem: Rectangle {
-            width: menuPopup.width
-            height: menuPopup.height
-            color: Theme.surface
-            radius: Theme.cornerRadius
-            border.width: 1
-            border.color: Theme.surfaceVariant
+        Quickshell.execDetached(["dms-sm-launch-terminal", app])
+    }
 
-            Column {
-                anchors.fill: parent
-                spacing: 0
+    /* --------Fuction to copy needed scripts & Add path to bash*/
+    function pluginSetupCmd() {
+        // Run the bundled setup script. We keep the path unquoted so ~ expands.
+        Quickshell.execDetached(["sh", "-c", "~/.config/DankMaterialShell/plugins/DmsSystemMenu/dms-sm-setup.sh"])
+        // Optimistically mark installed so button hides; the script can
+        // also update this via pluginData or by calling markSetupInstalled().
+        root.setupInstalled = true
+        toast("Setup started")
+    }
 
-                Row {
-                    width: parent.width
-                    height: 52
-                    spacing: Theme.spacingS
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.margins: Theme.spacingS
+    /* ----------  UI components  ---------- */
+    component SystemMenuIcon: DankIcon {
+        name: root.displayIcon
+        size: Theme.barIconSize(root.barThickness, -4)
+        color: Theme.primary
+        visible: root.showIcon
+    }
+    component SystemMenuText: StyledText {
+        text: root.displayText
+        font.pixelSize: Theme.fontSizeMedium
+        font.weight: Font.Medium
+        color: Theme.surfaceText
+        visible: root.showText
+    }
 
-                    ViewToggleButton {
-                        iconName: "arrow_back"
-                        isActive: false
-                        onClicked: goBack()
-                        visible: menuStack.length > 0
-                    }
+    component MenuHeader: Rectangle {
+        id: menuHeader
+        width: parent.width
+        height: 52
+        color: "transparent"
+       
+        ViewToggleButton {
+            id: pluginSetup
+            anchors.verticalCenter: parent.verticalCenter
+            iconName: "download"
+            isActive: false
+            onClicked: root.pluginSetupCmd()
+            visible: root.setupInstalled = false
+        }
 
-                    StyledText {
-                        text: currentTitle
-                        font.pixelSize: Theme.fontSizeMedium
-                        font.weight: Font.Medium
-                        color: Theme.surfaceText
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    Row {
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: Theme.spacingXS
-
-                        ViewToggleButton {
-                            iconName: "close"
-                            isActive: false
-                            onClicked: menuPopup.close()
-                        }
-                    }
-                }
-
-                ListView {
-                    id: menuList
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    anchors.topMargin: 52
-                    anchors.margins: Theme.spacingS
-                    model: currentItems
-                    clip: true
-
-                    delegate: Rectangle {
-                        width: parent.width
-                        height: 44
-                        color: mouseArea.containsMouse ? Theme.surfaceContainerHighest : "transparent"
-
-                        Row {
-                            anchors.fill: parent
-                            anchors.leftMargin: Theme.spacingM
-                            anchors.rightMargin: Theme.spacingM
-                            spacing: Theme.spacingS
-
-                            DankIcon {
-                                name: modelData.icon || "menu"
-                                size: Theme.iconSize
-                                color: Theme.surfaceText
-                                visible: modelData.icon !== undefined
-                            }
-
-                            StyledText {
-                                text: modelData.text || ""
-                                font.pixelSize: Theme.fontSizeMedium
-                                color: Theme.surfaceText
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-
-                            Item { Layout.fillWidth: true }
-
-                            DankIcon {
-                                name: modelData.submenu ? "chevron_right" : "launch"
-                                size: Theme.iconSize - 2
-                                color: Theme.surfaceVariantText
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        MouseArea {
-                            id: mouseArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                if (modelData.submenu) {
-                                    navigateTo(modelData.submenu, modelData.text)
-                                } else if (modelData.actionCmd) {
-                                    runCommand(modelData.actionCmd)
-                                }
-                            }
-                        }
-                    }
-                }
+        ViewToggleButton {
+            id: backBtn
+            anchors.verticalCenter: parent.verticalCenter
+            iconName: "arrow_back"
+            isActive: false
+            onClicked: root.goBack()
+            visible: currentTitle !== "System Menu"
+        }
+        StyledText {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            text: currentTitle
+            font.pixelSize: Theme.fontSizeXLarge
+            font.weight: Font.Bold
+            color: Theme.surfaceText
+        }
+        Row {
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: Theme.spacingXS
+            ViewToggleButton {
+                iconName: "terminal"
+                isActive: false
+                onClicked: root.launchTerminal()
+                visible: root.terminalApp !== undefined && root.terminalApp !== ""
             }
         }
     }
 
-    horizontalBarPill: Component {
+    component MenuStacks: StyledRect {
+        id: menuStacksRows
+        property var menuData
+        signal clicked
+
+        width: parent.width
+        height: 60
+        radius: Theme.cornerRadius
+        color: mouseArea.containsMouse ? Theme.surfaceContainerHighest : Theme.surfaceContainerHigh
+        border.width: 0
+
+        Row {
+            width: parent.width
+            height: parent.height
+            spacing: Theme.spacingM
+
+            DankIcon {
+                name: modelData.icon || "menu"
+                size: Theme.iconSize - 2
+                color: Theme.surfaceText
+                visible: modelData.icon !== undefined
+                anchors.left: parent.left
+                anchors.leftMargin: Theme.spacingM
+                anchors.verticalCenter: parent.verticalCenter
+            }
+            StyledText {
+                text: modelData.name
+                font.pixelSize: Theme.fontSizeLarge
+                color: Theme.surfaceText
+                anchors.left: parent.left
+                anchors.leftMargin: 50
+                anchors.verticalCenter: parent.verticalCenter
+            }
+ 
+            DankIcon {
+                name: modelData.submenu ? "chevron_right" : "launch"
+                size: 16
+                color: Theme.surfaceVariantText
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.spacingM
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
+
         MouseArea {
-            implicitWidth: contentRow.implicitWidth
-            implicitHeight: contentRow.implicitHeight
+            id: mouseArea
+            anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onClicked: menuStacksRows.clicked()
+        }
+    }
 
-            onClicked: function(mouse) {
-                showMainMenu()
+    /* ----------  bar pills  ---------- */
+    horizontalBarPill: Row {
+        spacing: Theme.spacingXS
+        SystemMenuIcon {
+            anchors.verticalCenter: parent.verticalCenter 
+        }
+        SystemMenuText { 
+            anchors.verticalCenter: parent.verticalCenter 
+        }
+    }
+    verticalBarPill: Column {
+        spacing: Theme.spacingXS
+        SystemMenuIcon { 
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+        SystemMenuText {
+            anchors.horizontalCenter: parent.horizontalCenter 
+        }
+    }
+
+    /* ----------  pop-out  ---------- */
+    popoutWidth: 400
+    popoutHeight: 530
+
+    popoutContent: Component {
+        id: menuPopout
+        Column {
+            spacing: 0
+
+            MenuHeader {
+               //color: Theme.primary
             }
 
-            Row {
-                id: contentRow
-                spacing: Theme.spacingXS
+            /* list */
+            DankListView {
+                id: menuList
+                width: parent.width
+                height: root.popoutHeight - 46 - Theme.spacingXL
+                topMargin: 0
+                bottomMargin: Theme.spacingM
+                leftMargin: Theme.spacingM
+                rightMargin: Theme.spacingM
+                spacing: 6
+                clip: true
+                model: currentItems
 
-                DankIcon {
-                    name: root.displayIcon
-                    size: Theme.iconSize - 6
-                    color: Theme.surfaceText
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: root.showIcon
-                }
+                delegate: Column {
+                    width: menuList.width - menuList.leftMargin - menuList.rightMargin
+                    spacing: 0
 
-                StyledText {
-                    text: root.displayText
-                    font.pixelSize: Theme.fontSizeSmall
-                    font.weight: Font.Medium
-                    color: Theme.surfaceText
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: root.showText
+                    MenuStacks {
+                        menuData: modelData
+                        onClicked: {
+                            if (modelData.submenu) root.navigateTo(modelData.submenu, modelData.name)
+                            else if (modelData.actionCmd) root.executeCommand(modelData.actionCmd)
+                        }
+                    }
                 }
             }
         }
     }
 
-    verticalBarPill: Component {
+    /* ----------  tiny helper  ---------- */
+    component ViewToggleButton: Rectangle {
+        property string iconName: ""
+        property bool isActive: false
+        signal clicked
+
+        width: 36; height: 36; radius: Theme.cornerRadius
+        color: isActive ? Theme.primaryHover
+                        : (mouseArea.containsMouse ? Theme.surfaceHover : "transparent")
+
+        DankIcon {
+            anchors.centerIn: parent
+            name: iconName
+            size: 18
+            color: isActive ? Theme.primary : Theme.surfaceText
+        }
         MouseArea {
-            implicitWidth: contentColumn.implicitWidth
-            implicitHeight: contentColumn.implicitHeight
+            id: mouseArea
+            anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-
-            onClicked: function(mouse) {
-                showMainMenu()
-            }
-
-            Column {
-                id: contentColumn
-                spacing: Theme.spacingXS
-
-                DankIcon {
-                    name: root.displayIcon
-                    size: Theme.iconSize - 6
-                    color: Theme.surfaceText
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    visible: root.showIcon
-                }
-
-                StyledText {
-                    text: root.displayText
-                    font.pixelSize: Theme.fontSizeSmall
-                    font.weight: Font.Medium
-                    color: Theme.surfaceText
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    visible: root.showText
-                }
-            }
+            onClicked: parent.clicked()
         }
     }
 }
