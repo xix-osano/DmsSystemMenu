@@ -1,8 +1,8 @@
 # DMS System Menu
 
 <div align="center">
-    <img src="assets/Screenshot.png" alt="DmsSystemMenu" width=300>
-    <img src="assets/Screenshot1.png" alt="DmsSystemMenu" width=300>
+    <img src="assets/Screenshot.png" alt="DmsSystemMenu" width=350>
+    <img src="assets/Screenshot1.png" alt="DmsSystemMenu" width=350>
 </div>
 
 
