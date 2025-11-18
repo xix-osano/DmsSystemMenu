@@ -6,7 +6,7 @@
 </div>
 
 
-Docker container monitoring and management plugin for [DankMaterialShell](https://danklinux.com/)
+System Menu management plugin for [DankMaterialShell](https://danklinux.com/)
 
 Inspired by [Omarchy Walker Menu](https://github.com/basecamp/omarchy/)
 
