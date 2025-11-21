@@ -416,6 +416,10 @@ PluginComponent {
                 spacing: 6
                 clip: true
                 model: currentItems
+                interactive: true
+                currentIndex: 0
+                highlightFollowsCurrentItem: true
+                focus: true
 
                 delegate: Column {
                     width: menuList.width - menuList.leftMargin - menuList.rightMargin
@@ -429,6 +433,26 @@ PluginComponent {
                         }
                     }
                 }
+
+                Keys.onUpPressed: {
+                    list.currentIndex = Math.max(0, list.currentIndex - 1)
+                }
+
+                Keys.onDownPressed: {
+                    list.currentIndex = Math.min(list.count - 1, list.currentIndex + 1)
+                }
+
+                Keys.onReturnPressed: {
+                    let m = list.model[list.currentIndex]
+                    menuStack.activateFn(m.actionType, m.actionData)
+                }
+
+                Keys.onSpacePressed: {
+                    let m = list.model[list.currentIndex]
+                    menuStack.activateFn(m.actionType, m.actionData)
+                }
+
+                Keys.forwardTo: [menuStack]
             }
         }
     }
