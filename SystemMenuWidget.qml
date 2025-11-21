@@ -20,12 +20,18 @@ PluginComponent {
     property bool showText: boolSetting(pluginData.showText, true)
     property bool isLoading: false
 
+    property string scriptsPath: Quickshell.env.HOME + "/.local/share/dms-sm-plugin/bin"
+    property string assetsDir: "~/.local/share/dms-sm-plugin/assets"
+    property string installedFlagFile: assetsDir + "/.installed"
+    property string installedVersionFile: assetsDir + "/.version"
+    property string currentVersionFile: "~/.config/DankMaterialShell/plugins/DmsSystemMenu/assets/.version"
+    property bool setupInstalled: !setupRequired
+
     /* ----------  menu data  ---------- */
     property var currentItems: topLevelMenu
     property var menuStack:    ([])
 
     property string currentTitle: "System Menu"
-    property bool setupInstalled: false
 
     property var topLevelMenu: [
         { name: "Learn",   icon: "school", submenu: [
@@ -147,8 +153,7 @@ PluginComponent {
         console.log("SystemMenu: executeStack cmdString=", cmdString, "actionType=", actionType, "actionData=", actionData)
 
         // Absolute paths for your scripts
-        const scriptsPath = "/home/enosh/.local/share/dms-sm-plugin/bin"
-        var envPath = `PATH=$PATH:${scriptsPath}`
+        const envPath = `PATH=$PATH:${root.scriptsPath}`
 
         switch (actionType) {
         case "Web":
@@ -206,11 +211,10 @@ PluginComponent {
         running: false
 
         onExited: (exitCode, exitStatus) => {
-            root.isLoading = false
-            if (exitCode === 0) {
-                isLoading = true
-            } else {
+            root.isLoading = false // Should always be false upon exit
+            if (exitCode !== 0) {
                 console.warn("DmsSystemMenu: Command failed with code", exitCode)
+                root.toast(`Command failed with exit code ${exitCode}. Check terminal output.`)
             }
         }
     }
@@ -249,8 +253,41 @@ PluginComponent {
         // Build final command array
         var argv = termArgs.concat(termFlags).concat(execPrefix).concat([setupCommand])
         Quickshell.execDetached(argv)
-        setupInstalled = true
         toast("Setup script launching in terminal...")
+
+        // mark as installed after setup
+        root.setupInstalled = true
+        root.setupRequired = false
+    }
+
+    Component.onCompleted: {
+        // Check if installed version file exists
+        Quickshell.Io.File.exists(root.installedVersionFile).then(function(installedExists) {
+            if (!installedExists) {
+                root.setupRequired = true
+                return
+            }
+
+            // Read installed version
+            Quickshell.Io.File.read(root.installedVersionFile).then(function(installedVersion) {
+                // Read current plugin version
+                Quickshell.Io.File.read(currentVersionFile).then(function(currentVersion) {
+                    root.setupRequired = (installedVersion.trim() !== currentVersion.trim())
+                    root.setupInstalled = !root.setupRequired
+                    console.log("SystemMenu: setupRequired =", root.setupRequired,
+                                "installedVersion =", installedVersion.trim(),
+                                "currentVersion =", currentVersion.trim())
+                }).catch(function(e) {
+                    console.warn("SystemMenu: Could not read current version file", e)
+                    root.setupRequired = true
+                    root.setupInstalled = false
+                })
+            }).catch(function(e) {
+                console.warn("SystemMenu: Could not read installed version file", e)
+                root.setupRequired = true
+                root.setupInstalled = false
+            })
+        })
     }
 
     /* ----------  UI components  ---------- */
@@ -283,8 +320,8 @@ PluginComponent {
             iconName: "download"
             isActive: false
             onClicked: root.pluginSetupCmd()
-            // show the setup/download button when setup is NOT installed and still in main menu
-            visible: !root.setupInstalled && currentTitle === "System Menu"
+            // show the setup/download button when setup is required and still in main menu
+            visible: root.setupRequired && currentTitle === "System Menu"
         }
 
         ViewToggleButton {
@@ -295,7 +332,7 @@ PluginComponent {
             iconName: "arrow_back"
             isActive: false
             onClicked: root.goBack()
-            visible: currentTitle !== "System Menu"
+            visible: menuStack.length > 0
         }
         StyledText {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -380,6 +417,9 @@ PluginComponent {
         SystemMenuText { 
             anchors.verticalCenter: parent.verticalCenter 
         }
+        BusyIndicator {
+            visible: root.isLoading
+        }
     }
     verticalBarPill: Column {
         spacing: Theme.spacingXS
@@ -388,6 +428,9 @@ PluginComponent {
         }
         SystemMenuText {
             anchors.horizontalCenter: parent.horizontalCenter 
+        }
+        BusyIndicator {
+            visible: root.isLoading
         }
     }
 
@@ -444,12 +487,24 @@ PluginComponent {
 
                 Keys.onReturnPressed: {
                     let m = list.model[list.currentIndex]
-                    menuStack.activateFn(m.actionType, m.actionData)
+                    if (!m) return
+
+                    if (m.submenu) {
+                        root.navigateTo(m.submenu, m.name)
+                    } else if (m.actionCmd) {
+                        root.runAction(m.actionCmd)
+                    }
                 }
 
                 Keys.onSpacePressed: {
                     let m = list.model[list.currentIndex]
-                    menuStack.activateFn(m.actionType, m.actionData)
+                    if (!m) return
+
+                    if (m.submenu) {
+                        root.navigateTo(m.submenu, m.name)
+                    } else if (m.actionCmd) {
+                        root.runAction(m.actionCmd)
+                    }
                 }
 
                 Keys.forwardTo: [menuStack]

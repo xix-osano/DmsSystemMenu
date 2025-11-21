@@ -7,7 +7,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BIN_DIR="$SCRIPT_DIR/bin"
-INSTALL_DIR="$HOME/.local/share/dms-sm-plugin/bin"
+ASSETS_DIR="$SCRIPT_DIR/assets"
+INSTALL_DIR="$HOME/.local/share/dms-sm-plugin"
+INSTALL_BIN_DIR="$INSTALL_DIR/bin"
+INSTALL_ASSETS_DIR="$INSTALL_DIR/assets"
 LINKING_DIR="$HOME/.local/bin"
 
 # Colors for output
@@ -30,29 +33,29 @@ if [[ ! -d "$BIN_DIR" ]]; then
 fi
 
 # Create ~/.local/share/dms-sm-plugin/bin if it doesn't exist
-if [[ ! -d "$INSTALL_DIR" ]]; then
-    echo -e "${YELLOW}→${NC} Creating directory: $INSTALL_DIR"
-    mkdir -p "$INSTALL_DIR" || {
+if [[ ! -d "$INSTALL_BIN_DIR" ]]; then
+    echo -e "${YELLOW}→${NC} Creating directory: $INSTALL_BIN_DIR"
+    mkdir -p "$INSTALL_BIN_DIR" || {
         echo -e "${RED}✗ Failed to create directory${NC}"
         exit 1
     }
     echo -e "${GREEN}✓${NC} Directory created"
 else
-    echo -e "${GREEN}✓${NC} Directory already exists: $INSTALL_DIR"
+    echo -e "${GREEN}✓${NC} Directory already exists: $INSTALL_BIN_DIR"
 fi
 
 # Copy the scripts
-echo -e "${YELLOW}→${NC} Copying scripts to $INSTALL_DIR"
-if sudo cp -r "$BIN_DIR"/* "$INSTALL_DIR"/ 2>/dev/null; then
+echo -e "${YELLOW}→${NC} Copying scripts to $INSTALL_BIN_DIR"
+if sudo cp -r "$BIN_DIR"/* "$INSTALL_BIN_DIR"/ 2>/dev/null; then
     echo -e "${GREEN}✓${NC} Scripts copied successfully"
     # Make scripts executable
-    sudo chmod +x "$INSTALL_DIR"/* 2>/dev/null || true
+    sudo chmod +x "$INSTALL_BIN_DIR"/* 2>/dev/null || true
 else
     echo -e "${RED}✗ Failed to copy scripts${NC}"
     echo -e "${YELLOW}  Trying without sudo...${NC}"
-    if cp -r "$BIN_DIR"/* "$INSTALL_DIR"/ 2>/dev/null; then
+    if cp -r "$BIN_DIR"/* "$INSTALL_BIN_DIR"/ 2>/dev/null; then
         echo -e "${GREEN}✓${NC} Scripts copied successfully (without sudo)"
-        chmod +x "$INSTALL_DIR"/* 2>/dev/null || true
+        chmod +x "$INSTALL_BIN_DIR"/* 2>/dev/null || true
     else
         echo -e "${RED}✗ Failed to copy scripts even without sudo${NC}"
         exit 1
@@ -63,8 +66,8 @@ fi
 echo "[autolinker] Initiating binary distribution pipeline…"
 
 # Validate source directory
-if [[ ! -d "$INSTALL_DIR" ]]; then
-    echo "[autolinker] Source directory missing: $INSTALL_DIR"
+if [[ ! -d "$INSTALL_BIN_DIR" ]]; then
+    echo "[autolinker] Source directory missing: $INSTALL_BIN_DIR"
     exit 1
 fi
 
@@ -75,7 +78,7 @@ if [[ ! -d "$LINKING_DIR" ]]; then
 fi
 
 # Iterate through all files
-for file in "$INSTALL_DIR"/*; do
+for file in "$INSTALL_BIN_DIR"/*; do
     name=$(basename "$file")
     link_path="$LINKING_DIR/$name"
 
@@ -124,3 +127,12 @@ if command -v pacman >/dev/null 2>&1; then
 else
     echo -e "${YELLOW}⚠${NC} Skipping package installation: pacman not found. Please install 'gum', 'plocate', and 'localsend' manually if needed."
 fi
+
+# Installation and Versioning Files
+if [[ ! -d "$INSTALL_ASSETS_DIR" ]]; then
+    cp -r "$ASSETS_DIR" "$INSTALL_ASSETS_DIR"
+fi
+
+#---- Update the version file ---
+mkdir -p "$INSTALL_ASSETS_DIR"
+cp "$ASSETS_DIR/.version" "$INSTALL_ASSETS_DIR/.version"
