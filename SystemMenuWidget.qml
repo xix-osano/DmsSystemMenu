@@ -153,7 +153,7 @@ PluginComponent {
         console.log("SystemMenu: executeStack cmdString=", cmdString, "actionType=", actionType, "actionData=", actionData)
 
         // Absolute paths for your scripts
-        const envPath = `PATH=$PATH:${root.scriptsPath}`
+        var envPath = `PATH=$PATH:${root.scriptsPath}`
 
         switch (actionType) {
         case "Web":
@@ -332,7 +332,7 @@ PluginComponent {
             iconName: "arrow_back"
             isActive: false
             onClicked: root.goBack()
-            visible: currentTitle !== "System Menu"
+            visible: menuStack.length > 0
         }
         StyledText {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -349,7 +349,8 @@ PluginComponent {
             ViewToggleButton {
                 iconName: "terminal"
                 isActive: false
-                onClicked: root.executeCommand(root.terminalApp + "--title=DMS_SM")
+                floatingTerminalApp: "alacritty --title=DMS_SM"
+                onClicked: root.executeCommand(floatingTerminalApp)
                 visible: root.terminalApp !== undefined && root.terminalApp !== ""
             }
         }
