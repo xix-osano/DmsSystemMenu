@@ -20,7 +20,7 @@ PluginComponent {
     property bool showText: boolSetting(pluginData.showText, true)
     property bool isLoading: false
 
-    property string scriptsPath: Quickshell.env.HOME + "/.local/share/dms-sm-plugin/bin"
+    property string scriptsPath: "$HOME/.local/share/dms-sm-plugin/bin"
     property string assetsDir: "~/.local/share/dms-sm-plugin/assets"
     property string installedFlagFile: assetsDir + "/.installed"
     property string installedVersionFile: assetsDir + "/.version"
@@ -153,7 +153,7 @@ PluginComponent {
         console.log("SystemMenu: executeStack cmdString=", cmdString, "actionType=", actionType, "actionData=", actionData)
 
         // Absolute paths for your scripts
-        var envPath = `PATH=$PATH:${root.scriptsPath}`
+        const envPath = `PATH=$PATH:${root.scriptsPath}`
 
         switch (actionType) {
         case "Web":
