@@ -18,7 +18,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║${NC} ${YELLOW}SystemMenu Plugin Installation${NC} ${BLUE}      ║${NC}"
+echo -e "${BLUE}║${NC} ${YELLOW}SystemMenu Plugin Installation${NC} ${BLUE}        ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
 
