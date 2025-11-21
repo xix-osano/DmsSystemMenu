@@ -2,13 +2,24 @@
 
 dms-sm-cmd-present "$EDITOR" || EDITOR=nvim
 
+# Try to get terminal from environment or default to alacritty
+TERMINAL="${DMS_TERMINAL:-alacritty}"
+
 case "$EDITOR" in
 nvim | vim | nano | micro | hx | helix)
-  exec setsid alacritty "$EDITOR" "$@"
-  notify-send "Editing config file" "$1"
+  # Launch terminal-based editor in a terminal window
+  if command -v "$TERMINAL" >/dev/null 2>&1; then
+    setsid "$TERMINAL" --class=DMS_SM --title=DMS_SM -e "$EDITOR" "$@" >/dev/null 2>&1 &
+    notify-send "Editing config file" "$1"
+  else
+    # Fallback to alacritty if configured terminal not found
+    setsid alacritty --class=DMS_SM --title=DMS_SM -e "$EDITOR" "$@" >/dev/null 2>&1 &
+    notify-send "Editing config file" "$1"
+  fi
   ;;
 *)
-  exec setsid "$EDITOR" "$@"
+  # Launch GUI editor directly
+  setsid "$EDITOR" "$@" >/dev/null 2>&1 &
   notify-send "Editing config file" "$1"
   ;;
 esac

@@ -26,13 +26,14 @@ This repository contains the UI/Qt Quick parts of the plugin and a set of helper
 - Grub bootloader (if using the setup features listed here)
 - Btrfs filesystem (recommended for snapshot workflows)
 - snapper (optional - used for snapshot capture)
+- bash
 
 ## Recommended packages
 
 - gum (CLI UI helper)
 - localsend (file sharing)
 - plocate
--fzf
+- fzf
 
 Other optional dependencies used by scripts (Wayland-focused): `grim`, `slurp`, `wl-copy`, `wf-recorder`, `fzf`, `hyprctl`, `hypridle`, and a terminal emulator such as `kitty` or `alacritty`.
 

@@ -1,10 +1,55 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
-echo -e "\e[32mUpdate DmsSystemMenu Plugin\e[0m"
+PLUGIN_PATH="$HOME/.config/DankMaterialShell/plugins/DmsSystemMenu"
 
-export PLUGIN_PATH = "~/.config/DankMaterialShell/plugins/DmsSystemMenu"
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
-git -C $PLUGIN_PATH pull --autostash
-git -C $PLUGIN_PATH diff --check || git -C $PLUGIN_PATH reset --merge
+echo -e "${GREEN}╔════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║${NC} ${YELLOW}Update DmsSystemMenu Plugin${NC} ${GREEN}║${NC}"
+echo -e "${GREEN}╚════════════════════════════════════════╝${NC}"
+echo ""
+
+# Check if plugin directory exists
+if [[ ! -d "$PLUGIN_PATH" ]]; then
+    echo -e "${RED}✗ Error: Plugin directory not found at $PLUGIN_PATH${NC}"
+    exit 1
+fi
+
+# Check if it's a git repository
+if [[ ! -d "$PLUGIN_PATH/.git" ]]; then
+    echo -e "${RED}✗ Error: $PLUGIN_PATH is not a git repository${NC}"
+    echo -e "${YELLOW}  Please clone the plugin repository first${NC}"
+    exit 1
+fi
+
+# Check for uncommitted changes
+if ! git -C "$PLUGIN_PATH" diff-index --quiet HEAD -- 2>/dev/null; then
+    echo -e "${YELLOW}⚠ Warning: You have uncommitted changes${NC}"
+    echo -e "${YELLOW}→${NC} Stashing changes before update..."
+    git -C "$PLUGIN_PATH" stash push -m "Auto-stash before update $(date +%Y-%m-%d_%H:%M:%S)" || {
+        echo -e "${RED}✗ Failed to stash changes${NC}"
+        exit 1
+    }
+fi
+
+# Update the plugin
+echo -e "${YELLOW}→${NC} Pulling latest changes..."
+if git -C "$PLUGIN_PATH" pull --autostash; then
+    echo -e "${GREEN}✓${NC} Plugin updated successfully"
+    
+    # Check if there were stashed changes that were reapplied
+    if git -C "$PLUGIN_PATH" stash list | grep -q "Auto-stash before update"; then
+        echo -e "${YELLOW}⚠${NC} Your previous changes were stashed and may need to be reapplied"
+        echo -e "${YELLOW}  Run 'git stash list' in $PLUGIN_PATH to see stashed changes${NC}"
+    fi
+else
+    echo -e "${RED}✗ Update failed${NC}"
+    echo -e "${YELLOW}  Please check the output above for errors${NC}"
+    exit 1
+fi

@@ -1,26 +1,27 @@
 import QtQuick
 import QtQuick.Controls
 import qs.Common
+import qs.Services
 import qs.Widgets
 import qs.Modules.Plugins
 
 PluginSettings {
     id: root
     pluginId: "systemMenu"
-    
-    //property var pluginService: null
-    readonly property var defaults: ({
-        terminalApp: "alacritty",
-        setupInstalled: false,
-        showIcon: true,
-        showText: true
-    })
-    
-    property string terminalApp: defaults.terminalApp
-    property string setupInstalled: defaults.setupInstalled
-    property string showIcon: defaults.showIcon
-    property string showText: defaults.showText
 
+    property string terminalApp: root.defaultSetting("terminalApp")
+    property bool setupInstalled: root.defaultSetting("setupInstalled")
+    property bool showIcon: root.defaultSetting("showIcon")
+    property bool showText: root.defaultSetting("showText")
+
+    function defaultSetting(key) {
+        if (key === "terminalApp") return "alacritty"
+        if (key === "setupInstalled") return false
+        if (key === "showIcon") return true
+        if (key === "showText") return true
+        return undefined
+    }
+    
     StyledText {
         width: parent.width
         text: "System Menu Settings"
@@ -39,113 +40,209 @@ PluginSettings {
 
     StyledRect {
         width: parent.width
-        height: 1
-        color: Theme.surfaceVariant
-    }
-
-    StringSetting {
-        settingKey: "terminalApp"
-        label: "Terminal Application"
-        description: "Choose terminal to launch scripts."
-        defaultValue: root.terminalApp
-        placeholder: root.terminalApp
-    }
-
-    ToggleSetting {
-        settingKey: "setupInstalled"
-        label: "Turn off to activate toogle for plugin setup."
-        description: "Displays the download icon in the popout"
-        defaultValue: root.setupInstalled
-    }
-
-    ToggleSetting {
-        settingKey: "showIcon"
-        label: "Show Icon"
-        description: "Display the plugin icon in the panel"
-        defaultValue: root.showIcon
-    }
-
-    ToggleSetting {
-        settingKey: "showText"
-        label: "Show Text"
-        description: "Display the plugin's label text in the panel"
-        defaultValue: root.showText
-    }
-
-    Column {
-        spacing: 8
-        width: parent.width - 32
-
-        Text {
-            text: "Usage:"
-            font.pixelSize: 14
-            font.weight: Font.Medium
-            color: "#FFFFFF"
-        }
+        height: actionColumn.implicitHeight + Theme.spacingL * 2
+        radius: Theme.cornerRadius
+        color: Theme.surfaceContainerHigh
 
         Column {
-            spacing: 4
-            leftPadding: 16
-            bottomPadding: 24
+            id: actionColumn
+            anchors.fill: parent
+            anchors.margins: Theme.spacingL
+            spacing: Theme.spacingM
 
-            Text {
-                text: "1. Use popout topleft download button to setup needed scripts. "
-                font.pixelSize: 12
-                color: "#CCFFFFFF"
+            Row {
+                width: parent.width
+                spacing: Theme.spacingS
+
+                StyledText {
+                    text: "Terminal Application"
+                    font.pixelSize: Theme.fontSizeLarge
+                    font.weight: Font.Medium
+                    width: parent.width - terminalAppField.width - Theme.spacingS
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: Theme.surfaceText
+                }
+
+                DankTextField {
+                    id: terminalAppField
+                    width: 200
+                    //placeholderText: "Enter terminal application"
+                    text: root.defaultSetting("terminalApp")
+                    onTextChanged: root.terminalApp = text
+                }
             }
 
-            Text {
-                text: "2. Add title:'^DMS_SM$' to your hyprland/niri floating configuration."
-                font.pixelSize: 12
-                color: "#CCFFFFFF"
+            StyledRect {
+                width: parent.width
+                height: 1
             }
 
-            Text {
-                text: "3."
-                font.pixelSize: 12
-                color: "#CCFFFFFF"
+            Row {
+                width: parent.width
+                spacing: Theme.spacingM
+
+                Column {
+                    width: parent.width - setupInstalledToggle.width - 20
+                    spacing: Theme.spacingXS
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    StyledText {
+                        text: "Setup Installed"
+                        font.pixelSize: Theme.fontSizeLarge
+                        font.weight: Font.Medium
+                        color: Theme.surfaceText
+                    }
+                        
+                    StyledText {
+                        text: "Turn off to enable the setup button in the main menu."
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.surfaceVariantText
+                        width: parent.width
+                        wrapMode: Text.WordWrap
+                    }   
+                }
+
+                DankToggle {
+                    id: setupInstalledToggle
+                    anchors.verticalCenter: parent.verticalCenter
+                    checked: root.defaultSetting("setupInstalled")
+                    onToggled: isChecked => {
+                        root.setupInstalled = isChecked
+                    }
+                }
             }
 
-            Text {
-                text: "4. "
-                font.pixelSize: 12
-                color: "#CCFFFFFF"
+            StyledRect {
+                width: parent.width
+                height: 1
+            }
+
+            Row {
+                width: parent.width
+                spacing: Theme.spacingM
+                
+
+                Column {
+                    spacing: Theme.spacingXS
+                    width: parent.width
+
+                    Row {
+                        width: parent.width
+                        spacing: Theme.spacingXS
+                        
+
+                        StyledText {
+                            text: "Show Icon"
+                            font.pixelSize: Theme.fontSizeLarge
+                            font.weight: Font.Medium
+                            color: Theme.surfaceVariantText
+                            width: parent.width - showIconToggle.width -Theme.spacingM
+                        }
+
+                        DankToggle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            id: showIconToggle
+                            checked: root.defaultSetting("showIcon")
+                            onToggled: isChecked => {
+                                root.showIcon = isChecked
+                            }
+                        }
+                    }
+                }
+            }
+
+            StyledRect {
+                width: parent.width
+                height: 1
+            }
+
+            Row {
+                width: parent.width
+                spacing: Theme.spacingM
+
+                Column {
+                    width: parent.width
+                    spacing: Theme.spacingXS
+
+                    Row {
+                        width: parent.width
+                        spacing: Theme.spacingXS
+
+                        StyledText {
+                            text: "Show Text"
+                            font.pixelSize: Theme.fontSizeLarge
+                            font.weight: Font.Medium
+                            color: Theme.surfaceVariantText
+                            width: parent.width - showTextToggle.width -Theme.spacingM
+                        }
+
+                        DankToggle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            id: showTextToggle
+                            checked: root.defaultSetting("showText")
+                            onToggled: isChecked => {
+                                root.showText = isChecked
+                            }
+                        }
+                    }
+                }
+            }
+
+            StyledRect {
+                width: parent.width
+                height: 1
             }
         }
     }
 
-    function saveSettings(key, value) {
-        if (pluginService) {
-            pluginService.savePluginData("systemMenu", key, value)
-        }
-    }
+    StyledRect {
+        width: parent.width
+        height: Math.max(200, instructionsColumn.implicitHeight + Theme.spacingL * 2)
+        radius: Theme.cornerRadius
+        color: Theme.surfaceContainerHigh
 
-    // function loadSettings(key, defaultValue) {
-    //     if (pluginService) {
-    //         return pluginService.loadPluginData("systemMenu", key, defaultValue)
-    //     }
-    //     return defaultValue
-    // }
+        Column {
+            id: instructionsColumn
+            anchors.fill: parent
+            anchors.margins: Theme.spacingL
+            spacing: Theme.spacingM
 
-    function loadSettings() {
-        const load = key => PluginService.loadPluginData(pluginId, key) || defaults[key];
-        terminalApp = load("terminalApp");
-        setupInstalled = load("setupInstalled");
-        showIcon = load("showIcon");
-        showText = load("showText");
-    }
+            StyledText {
+                text: "Usage:"
+                font.pixelSize: 14
+                font.weight: Font.Medium
+                color: "#FFFFFF"
+            }
 
-    Component.onCompleted: {
-        loadSettings();
-    }
+            Column {
+                spacing: 4
+                leftPadding: 16
+                bottomPadding: 24
 
-    Connections {
-        target: PluginService
-        function onPluginDataChanged(pluginId) {
-            if (pluginId === root.pluginId) {
-                loadSettings();
+                Text {
+                    text: "1. Use popout topleft download button to setup needed scripts. "
+                    font.pixelSize: 12
+                    color: "#CCFFFFFF"
+                }
+
+                Text {
+                    text: "2. Add title:'^DMS_SM$' to your hyprland/niri floating configuration."
+                    font.pixelSize: 12
+                    color: "#CCFFFFFF"
+                }
+
+                Text {
+                    text: "3."
+                    font.pixelSize: 12
+                    color: "#CCFFFFFF"
+                }
+
+                Text {
+                    text: "4. "
+                    font.pixelSize: 12
+                    color: "#CCFFFFFF"
+                }
             }
         }
     }
-
 }

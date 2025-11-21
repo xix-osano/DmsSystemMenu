@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# Check if powerprofilesctl is available
+if ! command -v powerprofilesctl >/dev/null 2>&1; then
+    echo -e "${RED}✗ Error: powerprofilesctl not found${NC}"
+    echo -e "${YELLOW}  Install it with: sudo pacman -S power-profiles-daemon${NC}"
+    exit 1
+fi
+
+# Get profile from argument or prompt user
+if [[ -z "${1:-}" ]]; then
+    # No argument provided - show interactive menu
+    profile=$(gum choose --height 5 --header "Select Power Profile" powersaver balanced performance) || {
+        echo "Selection cancelled"
+        exit 0
+    }
+else
+    profile="$1"
+fi
+
+# Normalize profile name to lowercase for case-insensitive matching
+profile_lower=$(echo "$profile" | tr '[:upper:]' '[:lower:]')
+
+# Set the power profile
+case "$profile_lower" in
+    powersaver|power-saver|power_saver)
+        echo -e "${YELLOW}→${NC} Setting power profile to: ${GREEN}Power-saver${NC}"
+        powerprofilesctl set power-saver
+        ;;
+    balanced)
+        echo -e "${YELLOW}→${NC} Setting power profile to: ${GREEN}Balanced${NC}"
+        powerprofilesctl set balanced
+        ;;
+    performance)
+        echo -e "${YELLOW}→${NC} Setting power profile to: ${GREEN}Performance${NC}"
+        powerprofilesctl set performance
+        ;;
+    *)
+        echo -e "${RED}✗ Error: Invalid power profile: $profile${NC}"
+        echo -e "${YELLOW}  Valid profiles are: powersaver, balanced, performance${NC}"
+        exit 1
+        ;;
+esac
+
+# Show current active profile
+current=$(powerprofilesctl get 2>/dev/null || echo "unknown")
+echo -e "${GREEN}✓${NC} Power profile set successfully"
+echo -e "${YELLOW}  Current active profile: ${GREEN}$current${NC}"

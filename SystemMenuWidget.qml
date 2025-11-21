@@ -1,6 +1,7 @@
 import QtQuick
-import QtQuick.Controls 2.15
+import QtQuick.Controls
 import Quickshell
+import Quickshell.Io
 import qs.Common
 import qs.Services
 import qs.Widgets
@@ -10,87 +11,166 @@ PluginComponent {
     id: root
 
     /* ----------  plugin config  ---------- */
-    property var  pluginService: null
-    property string terminalApp: pluginData.terminalApp ?? "alacritty"
-
+    property var pluginService: null
     property string pluginId: "systemMenu"
     property string displayIcon: "menu"
     property string displayText: "System"
-    property bool   showIcon: pluginData.showIcon ?? true
-    property bool   showText: pluginData.showText ?? true
+    property string terminalApp: pluginData.terminalApp !== undefined ? pluginData.terminalApp : "alacritty"
+    property bool showIcon: boolSetting(pluginData.showIcon, true)
+    property bool showText: boolSetting(pluginData.showText, true)
+
+    /* ------- Terminal plugins ---------*/
+    property bool isLoading: false
+    property string displayCommand: ""
 
     /* ----------  menu data  ---------- */
     property var currentItems: topLevelMenu
     property var menuStack:    ([])
 
     property string currentTitle: "System Menu"
-    property bool setupInstalled: pluginData.setupInstalled ?? false
+    //property bool setupInstalled: boolSetting(pluginData.setupInstalled, false) || setupCheckResult
+    property bool setupInstalled: setupCheckResult
+
+    // Check if setup is complete by verifying scripts exist
+    property bool setupCheckResult: false
+
+    function checkSetupComplete() {
+        checkSetupProcess.command = ["sh", "-c", "command -v dms-sm-terminal >/dev/null 2>&1"]
+        checkSetupProcess.running = true
+    }
+
+    Process {
+        id: checkSetupProcess
+        command: ["sh", "-c", "command -v dms-sm-terminal >/dev/null 2>&1"]
+        running: false
+
+        onExited: (exitCode) => {
+            var wasComplete = setupCheckResult
+            setupCheckResult = (exitCode === 0)
+            
+            // If setup just completed, save it to plugin data
+            if (setupCheckResult && !wasComplete) {
+                if (typeof PluginService !== "undefined" && PluginService.savePluginData) {
+                    PluginService.savePluginData(pluginId, "setupInstalled", true)
+                }
+            }
+        }
+    }
+
+    // Check on component completion and periodically
+    Component.onCompleted: {
+        checkSetupComplete()
+        // Check every 5 seconds to detect when setup completes
+        setupCheckTimer.start()
+    }
+
+    // Update when plugin data changes
+    Connections {
+        target: PluginService
+        function onPluginDataChanged(changedPluginId) {
+            if (changedPluginId === pluginId) {
+                // Re-check setup status when plugin data changes
+                checkSetupComplete()
+            }
+        }
+    }
+
+    Timer {
+        id: setupCheckTimer
+        interval: 5000
+        running: false
+        repeat: true
+        onTriggered: {
+            if (!setupCheckResult && !boolSetting(pluginData.setupInstalled, false)) {
+                checkSetupComplete()
+            } else {
+                // Stop checking once setup is confirmed complete
+                stop()
+            }
+        }
+    }
 
     property var topLevelMenu: [
         { name: "Learn",   icon: "school", submenu: [
-            { name: "Hyprland", icon: "school", actionCmd: "Web:https://wiki.hypr.land/" },
-            { name: "Arch",     icon: "school", actionCmd: "Web:https://wiki.archlinux.org/title/Main_page" },
-            { name: "Neovim",   icon: "school", actionCmd: "Web:https://www.lazyvim.org/keymaps" },
-            { name: "Bash",     icon: "school", actionCmd: "Web:https://devhints.io/bash" },
-            { name: "Dank",     icon: "school", actionCmd: "Web:https://danklinux.com/docs/" }
+            { name: "Arch",     icon: "language", actionCmd: "Web:https://wiki.archlinux.org/title/Main_page" },
+            { name: "Niri",     icon: "language", actionCmd: "Web:https://yalter.github.io/niri/Configuration%3A-Introduction" },
+            { name: "Hyprland", icon: "language", actionCmd: "Web:https://wiki.hypr.land/" },
+            { name: "Neovim",   icon: "language", actionCmd: "Web:https://www.lazyvim.org/keymaps" },
+            { name: "Bash",     icon: "language", actionCmd: "Web:https://devhints.io/bash" },
+            { name: "Dank",     icon: "language", actionCmd: "Web:https://danklinux.com/docs/" }
         ]},
-        { name: "Capture", icon: "photo_camera", submenu: [
-            { name: "Screenshot Region",    icon: "photo_camera", actionCmd: "Script:dms-sm-screenshot region" },
-            { name: "Screenshot Fullscreen",icon: "photo_camera", actionCmd: "Script:dms-sm-screenshot fullscreen" },
-            { name: "Snapshot",             icon: "photo_camera", actionCmd: "Script:dms-sm-snapshot" }
+        { name: "Capture", icon: "screenshot_monitor", submenu: [
+            { name: "Screenshot Region",    icon: "crop_square", actionCmd: "Script:dms-sm-screenshot region" },
+            { name: "Screenshot Fullscreen",icon: "screenshot_monitor", actionCmd: "Script:dms-sm-screenshot fullscreen" },
+            { name: "Snapshot",             icon: "photo_library", submenu: [
+                { name: "Create Snapshot",icon: "photo_camera", actionCmd: "Script:dms-sm-snapshot create" },
+                { name: "Restore Snapshot",icon: "history", actionCmd: "Script:dms-sm-snapshot restore" },
+            ]}
         ]},
         { name: "Share",   icon: "share", submenu: [
-            { name: "Share Clipboard", icon: "share", actionCmd: "Script:dms-sm-share clipboard" },
-            { name: "Share File",      icon: "share", actionCmd: "Script:dms-sm-share file" },
-            { name: "Share Folder",    icon: "share", actionCmd: "Script:dms-sm-share folder" }
+            { name: "Share Clipboard", icon: "content_copy", actionCmd: "Script:dms-sm-share clipboard" },
+            { name: "Share File",      icon: "description", actionCmd: "Script:dms-sm-share file" },
+            { name: "Share Folder",    icon: "folder", actionCmd: "Script:dms-sm-share folder" }
         ]},
-        { name: "Config",  icon: "settings", submenu: [
-            { name: "Edit Hyprland", icon: "settings", actionCmd: "Edit:dms-sm-editor ~/.config/hypr/hyprland.conf" },
-            { name: "Edit Hypridle", icon: "settings", actionCmd: "Edit:dms-sm-editor ~/.config/hypr/hypridle.conf" },
-            { name: "Edit Waybar",   icon: "settings", actionCmd: "Edit:dms-sm-editor ~/.config/waybar/config" }
+        { name: "Config",  icon: "edit_square", submenu: [
+            { name: "Edit Hyprland", icon: "edit", actionCmd: "Edit:~/.config/hypr/hyprland.conf" },
+            { name: "Edit Niri", icon: "edit", actionCmd: "Edit:~/.config/niri/config.kdl" },
+            { name: "Edit Bash",   icon: "edit", actionCmd: "Edit:~/.bashrc" }
         ]},
-        { name: "Security",  icon: "settings", submenu: [
-            { name: "Apparmor", icon: "settings", actionCmd: "Script:dms-sm-setup-apparmor" },
-            { name: "Secureboot", icon: "settings", actionCmd: "Script:dms-sm-setup-secureboot" },
-            { name: "Dns",   icon: "settings", actionCmd: "Script:dms-sm-setup-dns" }
-        ]},
-        { name: "Setup",  icon: "settings", submenu: [
-            { name: "Security", icon: "settings", submenu: [
-                { name: "Apparmor", icon: "settings", actionCmd: "Script:dms-sm-setup-apparmor" },
-                { name: "Secureboot", icon: "settings", actionCmd: "Script:dms-sm-setup-secureboot" },
-                { name: "Fingerprint",   icon: "settings", actionCmd: "Script:dms-sm-setup-fingerprint" },
-                { name: "Fido2",   icon: "settings", actionCmd: "Script:dms-sm-setup-fido2" }
+        { name: "Setup",  icon: "construction", submenu: [
+            { name: "Security", icon: "security", submenu: [
+                { name: "Apparmor", icon: "verified_user", actionCmd: "Script:dms-sm-setup-apparmor" },
+                { name: "Secureboot", icon: "verified_user", actionCmd: "Script:dms-sm-setup-secureboot" },
+                { name: "Fingerprint",   icon: "fingerprint", actionCmd: "Script:dms-sm-setup-fingerprint" },
+                { name: "Fido2",   icon: "vpn_key", actionCmd: "Script:dms-sm-setup-fido2" }
             ]},
-            { name: "Power",   icon: "settings", submenu: [
-                { name: "Power-saver",   icon: "settings", actionCmd: "Script:dms-sm-setup-power powersaver" },
-                { name: "Balanced",   icon: "settings", actionCmd: "Script:dms-sm-setup-power balanced" },
-                { name: "Performance",   icon: "settings", actionCmd: "Script:dms-sm-setup-power performance" }
+            { name: "Power",   icon: "battery_full", submenu: [
+                { name: "Power-saver",   icon: "battery_saver", actionCmd: "Script:dms-sm-setup-power power-saver" },
+                { name: "Balanced",   icon: "battery_full", actionCmd: "Script:dms-sm-setup-power balanced" },
+                { name: "Performance",   icon: "battery_unknown", actionCmd: "Script:dms-sm-setup-power performance" }
             ]},
-            { name: "Dns", icon: "settings", actionCmd: "Script:dms-sm-setup-dns" }
+            { name: "Dns",   icon: "dns", submenu: [
+                { name: "CloudFlare",   icon: "cloud", actionCmd: "Script:dms-sm-setup-dns Cloudflare" },
+                { name: "Quad9",   icon: "cloud", actionCmd: "Script:dms-sm-setup-dns Quad9" },
+                { name: "DHCP",   icon: "cloud_queue", actionCmd: "Script:dms-sm-setup-dns DHCP" },
+                { name: "Custom",   icon: "settings_ethernet", actionCmd: "Script:dms-sm-setup-dns Custom" }
+            ]}
         ]},
-        { name: "Install", icon: "download", submenu: [
-            { name: "Package", icon: "download", actionCmd: "Script:dms-sm-pkg-install" },
-            { name: "AUR",     icon: "download", actionCmd: "Script:dms-sm-pkg-aur-install" },
-            { name: "Development", icon: "download", actionCmd: "Script:dms-sm-install-service" },
-            { name: "Service", icon: "download", actionCmd: "Script:dms-sm-install-service" }
+        { name: "Install", icon: "add_circle", submenu: [
+            { name: "Package", icon: "package", actionCmd: "Script:dms-sm-pkg-install" },
+            { name: "AUR",     icon: "package", actionCmd: "Script:dms-sm-pkg-aur-install" },
+            { name: "Development", icon: "developer_mode", actionCmd: "Script:dms-sm-install-service" },
+            { name: "Service", icon: "add_circle", actionCmd: "Script:dms-sm-install-service" }
         ]},
-        { name: "Remove", icon: "download", submenu: [
-            { name: "Package", icon: "download", actionCmd: "Script:dms-sm-pkg-install" },
-            { name: "AUR",     icon: "download", actionCmd: "Script:dms-sm-pkg-aur-install" },
-            { name: "Service", icon: "download", actionCmd: "Script:dms-sm-install-service" }
+        { name: "Remove", icon: "delete", submenu: [
+            { name: "Package", icon: "delete", actionCmd: "Script:dms-sm-pkg-install" },
+            { name: "AUR",     icon: "delete", actionCmd: "Script:dms-sm-pkg-aur-install" },
+            { name: "Service", icon: "delete", actionCmd: "Script:dms-sm-install-service" }
         ]},
-        { name: "Update", icon: "download", submenu: [
-            { name: "System", icon: "download", actionCmd: "Script:dms-sm-update" },
-            { name: "Firmware",     icon: "download", actionCmd: "Script:dms-sm-update-firmware" },
-            { name: "DMSSystemMenu Plugin", icon: "download", actionCmd: "Script:dms-sm-update-plugin" }
+        { name: "Update", icon: "update", submenu: [
+            { name: "System", icon: "system_update", actionCmd: "Script:dms-sm-update" },
+            { name: "Firmware",     icon: "upgrade", actionCmd: "Script:dms-sm-update-firmware" },
+            { name: "DMSSystemMenu Plugin", icon: "extension", actionCmd: "Script:dms-sm-update-plugin" }
+        ]},
+        { name: "Power", icon: "power_settings_new", submenu: [
+            { name: "Logout",      icon: "logout",        actionCmd: "Run:loginctl terminate-session $XDG_SESSION_ID" },
+            { name: "Lock",        icon: "lock",          actionCmd: "Run:dms ipc call lock lock" },
+            { name: "Suspend",     icon: "bedtime",       actionCmd: "Run:systemctl suspend" },
+            { name: "Hibernate",   icon: "nightlight",    actionCmd: "Run:systemctl hibernate" },
+            { name: "Reboot",      icon: "restart_alt",   actionCmd: "Run:systemctl reboot" },
+            { name: "Power Off",   icon: "power_settings_new", actionCmd: "Run:systemctl poweroff" }
         ]}
     ]
 
     /* ----------  plugin interface  ---------- */
     signal stacksChanged()
 
-    Component.onCompleted: {
-        console.log(pluginId, ": Plugin loaded.");
+    function boolSetting(value, fallback) {
+        if (value === undefined || value === null) return fallback
+        if (typeof value === "boolean") return value
+        if (typeof value === "string") return value.toLowerCase() === "true"
+        if (typeof value === "number") return value !== 0
+        return fallback
     }
 
     /* ----------  required by Quickshell  ---------- */
@@ -111,39 +191,54 @@ PluginComponent {
         currentTitle = title
     }
     function goBack() {
-        if (!menuStack.length) { menuPopout.close(); return }
+        if (!menuStack.length) { root.closePopout(); return }
         currentItems = menuStack.pop()
         currentTitle = menuStack.length ? currentItems[0].name : "System Menu"
     }
 
     /* ----------  command dispatcher  ---------- */
-    function executeCommand(cmdString) {
-        if (!cmdString) { console.warn("SystemMenu: empty command"); return }
+    function executeStack(cmdString) {
+        if (!cmdString) { 
+            console.warn("SystemMenu: empty command")
+            return 
+        }
 
-        const parts = cmdString.split(":")
-        const type  = parts[0]
-        const data  = parts.slice(1).join(":")
+        const actionParts = cmdString.split(":")
+        const actionType = actionParts[0]
+        const actionData = actionParts.slice(1).join(":")
 
-        switch (type) {
+        console.log("SystemMenu: executeStack cmdString=", cmdString, "actionType=", actionType, "actionData=", actionData)
+
+        switch (actionType) {
         case "Web":
-            // Use direct exec to avoid an extra shell and quoting issues
-            Quickshell.execDetached(["xdg-open", data])
-            toast("Opened: " + data)
+            root.closePopout()
+            Quickshell.execDetached(["xdg-open", actionData])
+            toast("Opened: " + actionData)
             break
         case "Edit":
-            menuPopout.close()
-            // Call launcher with the single argument (the editor command+path)
-            Quickshell.execDetached(["dms-sm-launch-editor", data])
+            root.closePopout()
+            // Call launcher with the editor command+path, wrapped in shell
+            var editCmd = "dms-sm-launch-editor " + actionData
+            console.log("SystemMenu: Edit launching:", editCmd)
+            Quickshell.execDetached(["sh", "-c", editCmd])
+            toast("Editing config file: " + actionData)
             break
         case "Script":
-            menuPopout.close()
-            // Call dms-sm-terminal with terminalApp tokens, a separator "--", then the script+args
-            var argv = ["dms-sm-terminal"].concat(splitArgs(root.terminalApp)).concat(["--"]).concat(splitArgs(data))
-            Quickshell.execDetached(argv)
-            toast("Script executed: " + data)
+            root.closePopout()
+            // Call dms-sm-terminal through shell - need to join terminal args properly
+            var terminalCmd = splitArgs(root.terminalApp)
+            var terminalStr = terminalCmd.join(" ")
+            var scriptCmd = "dms-sm-terminal " + terminalStr + " -- " + actionData
+            console.log("SystemMenu: Script launching:", scriptCmd)
+            Quickshell.execDetached(["sh", "-c", scriptCmd])
+            toast("Script executed: " + actionData)
+            break
+        case "Run":
+            root.closePopout()
+            Quickshell.execDetached(["sh", "-c", actionData])
             break
         default:
-            toast("Unknown action: " + type)
+            toast("Unknown action: " + actionType)
         }
     }
 
@@ -152,29 +247,107 @@ PluginComponent {
         else console.log("SystemMenu toast:", msg)
     }
 
-    function launchTerminal(terminalApp) {
-        // Use provided terminalApp argument or fallback to configured value
-        var app = terminalApp || root.terminalApp
-        if (!app) { toast("No terminal configured"); return }
-
-        Quickshell.execDetached(["dms-sm-launch-terminal", app])
+    // Helper to split command string into array, handling basic quoted arguments
+    function splitArgs(str) {
+        if (!str) return []
+        // Simple split that handles quoted strings
+        var result = []
+        var current = ""
+        var inQuotes = false
+        var quoteChar = ""
+        
+        for (var i = 0; i < str.length; i++) {
+            var ch = str.charAt(i)
+            if ((ch === '"' || ch === "'") && !inQuotes) {
+                inQuotes = true
+                quoteChar = ch
+            } else if (ch === quoteChar && inQuotes) {
+                inQuotes = false
+                quoteChar = ""
+            } else if (ch === ' ' && !inQuotes) {
+                if (current.length > 0) {
+                    result.push(current)
+                    current = ""
+                }
+            } else {
+                current += ch
+            }
+        }
+        if (current.length > 0) {
+            result.push(current)
+        }
+        return result.length > 0 ? result : [str]
     }
 
-    /* --------Fuction to copy needed scripts & Add path to bash*/
+    function executeCommand(command) {
+        if (!command) return
+
+        root.closePopout()
+        isLoading = true
+        actionProcess.command = ["sh", "-c", command]
+        actionProcess.running = true
+    }
+
+    Process {
+        id: actionProcess
+        command: ["sh", "-c", ""]
+        running: false
+
+        onExited: (exitCode, exitStatus) => {
+            root.isLoading = false
+            if (exitCode === 0) {
+                if (root.displayCommand) {
+                    isLoading = true
+                }
+            } else {
+                console.warn("DmsSystemMenu: Command failed with code", exitCode)
+            }
+        }
+    }
+
+    /* --------Function to copy needed scripts & Add path to bash*/
     function pluginSetupCmd() {
-        // Run the bundled setup script. We keep the path unquoted so ~ expands.
-        Quickshell.execDetached(["sh", "-c", "~/.config/DankMaterialShell/plugins/DmsSystemMenu/dms-sm-setup.sh"])
-        // Optimistically mark installed so button hides; the script can
-        // also update this via pluginData or by calling markSetupInstalled().
-        root.setupInstalled = true
-        toast("Setup started")
+        root.closePopout()
+        // Launch the setup script in a terminal so user can see the output
+        // We can't use dms-sm-terminal here since it doesn't exist until after setup
+        const setupScript = "~/.config/DankMaterialShell/plugins/DmsSystemMenu/dms-sm-setup.sh"
+        const setupCommand = "bash " + setupScript + "; echo ''; echo 'Press any key to close...'; read -n 1"
+        
+        // Split terminal app and build command array
+        var termArgs = splitArgs(root.terminalApp)
+        if (termArgs.length === 0) {
+            termArgs = ["alacritty"] // fallback
+        }
+        
+        // Build terminal command with flags and exec prefix
+        var termProg = termArgs[0]
+        var termFlags = []
+        var execPrefix = []
+        
+        // Add terminal-specific flags based on terminal type
+        if (termProg === "alacritty" || termProg.includes("alacritty")) {
+            termFlags.push("--class=DMS_SM", "--title=DMS_SM")
+            execPrefix = ["-e", "bash", "-c"]
+        } else if (termProg === "kitty" || termProg.includes("kitty")) {
+            termFlags.push("--title", "DMS_SM")
+            execPrefix = ["-e", "bash", "-c"]
+        } else {
+            // Generic fallback for other terminals
+            execPrefix = ["-e", "bash", "-c"]
+        }
+        
+        // Build final command array
+        var argv = termArgs.concat(termFlags).concat(execPrefix).concat([setupCommand])
+        Quickshell.execDetached(argv)
+        toast("Setup script launching in terminal...")
     }
 
     /* ----------  UI components  ---------- */
     component SystemMenuIcon: DankIcon {
         name: root.displayIcon
         size: Theme.barIconSize(root.barThickness, -4)
-        color: Theme.primary
+        color: Theme.surfaceText
+
         visible: root.showIcon
     }
     component SystemMenuText: StyledText {
@@ -228,7 +401,7 @@ PluginComponent {
             ViewToggleButton {
                 iconName: "terminal"
                 isActive: false
-                onClicked: root.launchTerminal()
+                onClicked: root.executeCommand(root.terminalApp)
                 visible: root.terminalApp !== undefined && root.terminalApp !== ""
             }
         }
@@ -312,7 +485,7 @@ PluginComponent {
     popoutHeight: 530
 
     popoutContent: Component {
-        id: menuPopout
+        id: menuPopoutContent
         Column {
             spacing: 0
 
@@ -341,7 +514,7 @@ PluginComponent {
                         menuData: modelData
                         onClicked: {
                             if (modelData.submenu) root.navigateTo(modelData.submenu, modelData.name)
-                            else if (modelData.actionCmd) root.executeCommand(modelData.actionCmd)
+                            else if (modelData.actionCmd) root.executeStack(modelData.actionCmd)
                         }
                     }
                 }
