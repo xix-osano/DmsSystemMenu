@@ -197,7 +197,7 @@ PluginComponent {
     }
 
     /* ----------  command dispatcher  ---------- */
-    function executeStack(cmdString) {
+    function runAction(cmdString) {
         if (!cmdString) { 
             console.warn("SystemMenu: empty command")
             return 
@@ -265,35 +265,39 @@ PluginComponent {
     }
 
     // Helper to split command string into array, handling basic quoted arguments
-    function splitArgs(str) {
-        if (!str) return []
-        // Simple split that handles quoted strings
-        var result = []
-        var current = ""
-        var inQuotes = false
-        var quoteChar = ""
+    // function splitArgs(str) {
+    //     if (!str) return []
+    //     // Simple split that handles quoted strings
+    //     var result = []
+    //     var current = ""
+    //     var inQuotes = false
+    //     var quoteChar = ""
         
-        for (var i = 0; i < str.length; i++) {
-            var ch = str.charAt(i)
-            if ((ch === '"' || ch === "'") && !inQuotes) {
-                inQuotes = true
-                quoteChar = ch
-            } else if (ch === quoteChar && inQuotes) {
-                inQuotes = false
-                quoteChar = ""
-            } else if (ch === ' ' && !inQuotes) {
-                if (current.length > 0) {
-                    result.push(current)
-                    current = ""
-                }
-            } else {
-                current += ch
-            }
-        }
-        if (current.length > 0) {
-            result.push(current)
-        }
-        return result.length > 0 ? result : [str]
+    //     for (var i = 0; i < str.length; i++) {
+    //         var ch = str.charAt(i)
+    //         if ((ch === '"' || ch === "'") && !inQuotes) {
+    //             inQuotes = true
+    //             quoteChar = ch
+    //         } else if (ch === quoteChar && inQuotes) {
+    //             inQuotes = false
+    //             quoteChar = ""
+    //         } else if (ch === ' ' && !inQuotes) {
+    //             if (current.length > 0) {
+    //                 result.push(current)
+    //                 current = ""
+    //             }
+    //         } else {
+    //             current += ch
+    //         }
+    //     }
+    //     if (current.length > 0) {
+    //         result.push(current)
+    //     }
+    //     return result.length > 0 ? result : [str]
+    // }
+
+    function splitArgs(cmd) {
+        return cmd.trim().split(/\s+/);
     }
 
     function executeCommand(command) {
@@ -531,7 +535,7 @@ PluginComponent {
                         menuData: modelData
                         onClicked: {
                             if (modelData.submenu) root.navigateTo(modelData.submenu, modelData.name)
-                            else if (modelData.actionCmd) root.executeStack(modelData.actionCmd)
+                            else if (modelData.actionCmd) root.runAction(modelData.actionCmd)
                         }
                     }
                 }
