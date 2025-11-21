@@ -209,6 +209,9 @@ PluginComponent {
 
         console.log("SystemMenu: executeStack cmdString=", cmdString, "actionType=", actionType, "actionData=", actionData)
 
+        // Absolute paths for your scripts
+        const scriptsPath = "/home/enosh/.local/share/dms-sm-plugin/bin";
+
         switch (actionType) {
         case "Web":
             root.closePopout()
@@ -218,7 +221,7 @@ PluginComponent {
         case "Edit":
             root.closePopout()
             // Call launcher with the editor command+path, wrapped in shell
-            var editCmd = "dms-sm-launch-editor " + actionData
+            var editCmd = scriptsPath + "/dms-sm-launch-editor " + actionData
             console.log("SystemMenu: Edit launching:", editCmd)
             Quickshell.execDetached(["sh", "-c", editCmd])
             toast("Editing config file: " + actionData)
