@@ -18,71 +18,14 @@ PluginComponent {
     property string terminalApp: pluginData.terminalApp !== undefined ? pluginData.terminalApp : "alacritty"
     property bool showIcon: boolSetting(pluginData.showIcon, true)
     property bool showText: boolSetting(pluginData.showText, true)
-
-    /* ------- Terminal plugins ---------*/
     property bool isLoading: false
-    property string displayCommand: ""
 
     /* ----------  menu data  ---------- */
     property var currentItems: topLevelMenu
     property var menuStack:    ([])
 
     property string currentTitle: "System Menu"
-    property bool setupInstalled: setupCheckResult
-
-    // Check if setup is complete by verifying scripts exist
-    property bool setupCheckResult: false
-
-    function checkSetupComplete() {
-        if (checkSetupProcess.running) return
-        checkSetupProcess.command = ["sh", "-c", "command -v dms-sm-terminal >/dev/null 2>&1"]
-        checkSetupProcess.running = true
-    }
-
-    Process {
-        id: checkSetupProcess
-        command: ["sh", "-c", "command -v dms-sm-terminal >/dev/null 2>&1"]
-        running: false
-
-        onExited: (exitCode) => {
-            var wasComplete = setupCheckResult
-            setupCheckResult = (exitCode === 0)
-            
-            if (setupCheckResult) setupCheckTimer.stop()
-        }
-    }
-
-    // Check on component completion and periodically
-    Component.onCompleted: {
-        checkSetupComplete()
-        // Check every 5 seconds to detect when setup completes
-        setupCheckTimer.start()
-    }
-
-    // Update when plugin data changes
-    Connections {
-        target: PluginService
-        function onPluginDataChanged(changedPluginId) {
-            if (changedPluginId === pluginId) {
-                // Re-check setup status when plugin data changes
-                checkSetupComplete()
-            }
-        }
-    }
-
-    Timer {
-        id: setupCheckTimer
-        interval: 5000
-        running: false
-        repeat: true
-        onTriggered: {
-            if (!setupCheckResult) {
-                checkSetupComplete()
-            } else {
-                stop()   // Stop checking once setup is confirmed complete
-            }
-        }
-    }
+    property bool setupInstalled: false
 
     property var topLevelMenu: [
         { name: "Learn",   icon: "school", submenu: [
@@ -215,30 +158,15 @@ PluginComponent {
             break
         case "Edit":
             root.closePopout()
-            // Call launcher with the editor command+path, wrapped in shell
             var editCmd = `${envPath} dms-sm-launch-editor ${actionData}`
-            //var editCmd = scriptsPath + "/dms-sm-launch-editor " + actionData
             console.log("SystemMenu: Edit launching:", editCmd)
             Quickshell.execDetached(["sh", "-c", editCmd])
             toast("Editing config file: " + actionData)
             break
 
-        // case "Script": 
-        //     root.closePopout() 
-        //     // Call dms-sm-terminal through shell - need to join terminal args properly 
-        //     var terminalCmd = splitArgs(root.terminalApp) 
-        //     var terminalStr = terminalCmd.join(" ") 
-        //     var scriptCmd = scriptsPath + "/dms-sm-terminal " + terminalStr + " -- " + actionData 
-        //     console.log("SystemMenu: Script launching:", scriptCmd) 
-        //     Quickshell.execDetached(["sh", "-c", scriptCmd]) 
-        //     toast("Script executed: " + actionData) 
-        //     break
         case "Script":
             root.closePopout()
-            // Call dms-sm-terminal through shell - need to join terminal args properly
             var terminalCmd = splitArgs(root.terminalApp).join(" ")
-            //var safeActionData = actionData.replace(/'/g, "'\\''") // escape single quotes
-            //var scriptCmd = `PATH=$PATH:${scriptsPath} dms-sm-terminal ${terminalCmd} -- '${safeActionData}'`
             var scriptCmd = `${envPath} dms-sm-terminal ${terminalCmd} -- ${actionData}`
             console.log("SystemMenu: Script launching:", scriptCmd)
             Quickshell.execDetached(["sh", "-c", scriptCmd])
@@ -259,37 +187,6 @@ PluginComponent {
     }
 
     // Helper to split command string into array, handling basic quoted arguments
-    // function splitArgs(str) {
-    //     if (!str) return []
-    //     // Simple split that handles quoted strings
-    //     var result = []
-    //     var current = ""
-    //     var inQuotes = false
-    //     var quoteChar = ""
-        
-    //     for (var i = 0; i < str.length; i++) {
-    //         var ch = str.charAt(i)
-    //         if ((ch === '"' || ch === "'") && !inQuotes) {
-    //             inQuotes = true
-    //             quoteChar = ch
-    //         } else if (ch === quoteChar && inQuotes) {
-    //             inQuotes = false
-    //             quoteChar = ""
-    //         } else if (ch === ' ' && !inQuotes) {
-    //             if (current.length > 0) {
-    //                 result.push(current)
-    //                 current = ""
-    //             }
-    //         } else {
-    //             current += ch
-    //         }
-    //     }
-    //     if (current.length > 0) {
-    //         result.push(current)
-    //     }
-    //     return result.length > 0 ? result : [str]
-    // }
-
     function splitArgs(cmd) {
         return cmd.trim().split(/\s+/);
     }
@@ -311,9 +208,7 @@ PluginComponent {
         onExited: (exitCode, exitStatus) => {
             root.isLoading = false
             if (exitCode === 0) {
-                if (root.displayCommand) {
-                    isLoading = true
-                }
+                isLoading = true
             } else {
                 console.warn("DmsSystemMenu: Command failed with code", exitCode)
             }
@@ -354,6 +249,7 @@ PluginComponent {
         // Build final command array
         var argv = termArgs.concat(termFlags).concat(execPrefix).concat([setupCommand])
         Quickshell.execDetached(argv)
+        setupInstalled = true
         toast("Setup script launching in terminal...")
     }
 

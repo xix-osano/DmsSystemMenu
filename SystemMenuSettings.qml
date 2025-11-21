@@ -190,13 +190,13 @@ PluginSettings {
                 }
 
                 Text {
-                    text: "3."
+                    text: "3. Use the popout to manage your system"
                     font.pixelSize: 12
                     color: "#CCFFFFFF"
                 }
 
                 Text {
-                    text: "4. "
+                    text: "4. Enjoy"
                     font.pixelSize: 12
                     color: "#CCFFFFFF"
                 }
