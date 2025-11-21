@@ -233,7 +233,7 @@ PluginComponent {
             // Call dms-sm-terminal through shell - need to join terminal args properly 
             var terminalCmd = splitArgs(root.terminalApp) 
             var terminalStr = terminalCmd.join(" ") 
-            var scriptCmd = scriptsPath + "dms-sm-terminal " + terminalStr + " -- " + actionData 
+            var scriptCmd = scriptsPath + "/dms-sm-terminal " + terminalStr + " -- " + actionData 
             console.log("SystemMenu: Script launching:", scriptCmd) 
             Quickshell.execDetached(["sh", "-c", scriptCmd]) 
             toast("Script executed: " + actionData) 
