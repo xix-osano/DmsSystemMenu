@@ -221,7 +221,8 @@ PluginComponent {
         case "Edit":
             root.closePopout()
             // Call launcher with the editor command+path, wrapped in shell
-            var editCmd = scriptsPath + "/dms-sm-launch-editor " + actionData
+            var editCmd = `PATH=$PATH:${scriptsPath} dms-sm-launch-editor ${actionData}`;
+            //var editCmd = scriptsPath + "/dms-sm-launch-editor " + actionData
             console.log("SystemMenu: Edit launching:", editCmd)
             Quickshell.execDetached(["sh", "-c", editCmd])
             toast("Editing config file: " + actionData)
@@ -229,9 +230,11 @@ PluginComponent {
         case "Script":
             root.closePopout()
             // Call dms-sm-terminal through shell - need to join terminal args properly
-            var terminalCmd = splitArgs(root.terminalApp)
-            var terminalStr = terminalCmd.join(" ")
-            var scriptCmd = "dms-sm-terminal " + terminalStr + " -- " + actionData
+            var terminalCmd = splitArgs(root.terminalApp).join(" ")
+            // Escape single quotes in actionData
+            //var safeActionData = actionData.replace(/'/g, "'\\''");
+            var scriptCmd = `PATH=$PATH:${scriptsPath} dms-sm-terminal ${terminalCmd} -- '${actionData}'`;
+            //var scriptCmd = "dms-sm-terminal " + terminalCmd + " -- " + actionData
             console.log("SystemMenu: Script launching:", scriptCmd)
             Quickshell.execDetached(["sh", "-c", scriptCmd])
             toast("Script executed: " + actionData)
