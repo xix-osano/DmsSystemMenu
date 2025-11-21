@@ -21,7 +21,7 @@ PluginComponent {
     property bool showText: boolSetting(pluginData.showText, true)
     property bool isLoading: false
 
-    //property string scriptsPath: "$HOME/.local/share/dms-sm-plugin/bin"
+    // property string scriptsPath: Quickshell.env.HOME + "/.local/share/dms-sm-plugin/bin"
     property string assetsDir: "~/.local/share/dms-sm-plugin/assets"
     property string installedFlagFile: assetsDir + "/.installed"
     property string installedVersionFile: assetsDir + "/.version"
@@ -294,8 +294,8 @@ PluginComponent {
                 })
             }).catch(function(e) {
                 console.warn("SystemMenu: Could not read installed version file", e)
-                root.setupRequired = true
-                root.setupInstalled = false
+                root.setupRequired = false
+                root.setupInstalled = true
             })
         })
     }
@@ -331,7 +331,7 @@ PluginComponent {
             isActive: false
             onClicked: root.pluginSetupCmd()
             // show the setup/download button when setup is required and still in main menu
-            visible: root.setupRequired && currentTitle === "System Menu"
+            visible: root.setupRequired && menuStack.length === 0
         }
 
         ViewToggleButton {
