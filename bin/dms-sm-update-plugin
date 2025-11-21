@@ -11,7 +11,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${GREEN}╔════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║${NC} ${YELLOW}Update DmsSystemMenu Plugin${NC} ${GREEN}          ║${NC}"
+echo -e "${GREEN}║${NC} ${YELLOW}Update DmsSystemMenu Plugin${NC} ${GREEN}           ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -53,3 +53,7 @@ else
     echo -e "${YELLOW}  Please check the output above for errors${NC}"
     exit 1
 fi
+
+# Restart DMS
+echo -e "${YELLOW}→${NC} Restarting DMS..."
+dms restart
