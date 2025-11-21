@@ -332,7 +332,7 @@ PluginComponent {
             iconName: "arrow_back"
             isActive: false
             onClicked: root.goBack()
-            visible: menuStack.length > 0
+            visible: currentTitle !== "System Menu"
         }
         StyledText {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -349,7 +349,7 @@ PluginComponent {
             ViewToggleButton {
                 iconName: "terminal"
                 isActive: false
-                onClicked: root.executeCommand(root.terminalApp)
+                onClicked: root.executeCommand(root.terminalApp + "--title=DMS_SM")
                 visible: root.terminalApp !== undefined && root.terminalApp !== ""
             }
         }
