@@ -16,11 +16,12 @@ PluginComponent {
     property string displayIcon: "menu"
     property string displayText: "System"
     property string terminalApp: pluginData.terminalApp !== undefined ? pluginData.terminalApp : "alacritty"
+    property string floatingTerminalApp: terminalApp + "--title=DMS_SM"
     property bool showIcon: boolSetting(pluginData.showIcon, true)
     property bool showText: boolSetting(pluginData.showText, true)
     property bool isLoading: false
 
-    property string scriptsPath: "~/.local/share/dms-sm-plugin/bin"
+    property string scriptsPath: Quickshell.env.HOME + "/.local/share/dms-sm-plugin/bin"
     property string assetsDir: "~/.local/share/dms-sm-plugin/assets"
     property string installedFlagFile: assetsDir + "/.installed"
     property string installedVersionFile: assetsDir + "/.version"
@@ -153,7 +154,7 @@ PluginComponent {
         console.log("SystemMenu: executeStack cmdString=", cmdString, "actionType=", actionType, "actionData=", actionData)
 
         // Absolute paths for your scripts
-        const envPath = `PATH=$PATH:${root.scriptsPath}`
+        var envPath = `PATH=$PATH:${root.scriptsPath}`
 
         switch (actionType) {
         case "Web":
@@ -349,7 +350,6 @@ PluginComponent {
             ViewToggleButton {
                 iconName: "terminal"
                 isActive: false
-                floatingTerminalApp: "alacritty --title=DMS_SM"
                 onClicked: root.executeCommand(floatingTerminalApp)
                 visible: root.terminalApp !== undefined && root.terminalApp !== ""
             }
