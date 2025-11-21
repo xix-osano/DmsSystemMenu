@@ -55,5 +55,5 @@ else
 fi
 
 # Restart DMS
-# echo -e "${YELLOW}→${NC} Restarting DMS..."
-# dms restart
+echo -e "${YELLOW}→${NC} Restarting DMS..."
+dms restart

@@ -21,7 +21,7 @@ PluginComponent {
     property bool showText: boolSetting(pluginData.showText, true)
     property bool isLoading: false
 
-    property string scriptsPath: Quickshell.env.HOME + "/.local/share/dms-sm-plugin/bin"
+    property string scriptsPath: "$HOME/.local/share/dms-sm-plugin/bin"
     property string assetsDir: "~/.local/share/dms-sm-plugin/assets"
     property string installedFlagFile: assetsDir + "/.installed"
     property string installedVersionFile: assetsDir + "/.version"
@@ -341,7 +341,7 @@ PluginComponent {
             iconName: "arrow_back"
             isActive: false
             onClicked: root.goBack()
-            visible: menuStack.length > 0
+            visible: currentTitle !== "System Menu"
         }
         StyledText {
             anchors.horizontalCenter: parent.horizontalCenter
