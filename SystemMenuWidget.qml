@@ -232,8 +232,8 @@ PluginComponent {
             // Call dms-sm-terminal through shell - need to join terminal args properly
             var terminalCmd = splitArgs(root.terminalApp).join(" ")
             // Escape single quotes in actionData
-            //var safeActionData = actionData.replace(/'/g, "'\\''");
-            var scriptCmd = `PATH=$PATH:${scriptsPath} dms-sm-terminal ${terminalCmd} -- '${actionData}'`;
+            var safeActionData = actionData.replace(/'/g, "'\\''");
+            var scriptCmd = `PATH=$PATH:${scriptsPath} dms-sm-terminal ${terminalCmd} -- '${safeActionData}'`;
             //var scriptCmd = "dms-sm-terminal " + terminalCmd + " -- " + actionData
             console.log("SystemMenu: Script launching:", scriptCmd)
             Quickshell.execDetached(["sh", "-c", scriptCmd])
