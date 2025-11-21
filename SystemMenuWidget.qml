@@ -233,7 +233,7 @@ PluginComponent {
             var terminalCmd = splitArgs(root.terminalApp).join(" ")
             // Escape single quotes in actionData
             var safeActionData = actionData.replace(/'/g, "'\\''");
-            var scriptCmd = `PATH=$PATH:${scriptsPath} dms-sm-terminal ${terminalCmd} -- '${safeActionData}'`;
+            var scriptCmd = `PATH=$PATH:${scriptsPath} dms-sm-terminal ${terminalCmd} -- '${safeActionData}'`
             //var scriptCmd = "dms-sm-terminal " + terminalCmd + " -- " + actionData
             console.log("SystemMenu: Script launching:", scriptCmd)
             Quickshell.execDetached(["sh", "-c", scriptCmd])
