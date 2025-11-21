@@ -10,13 +10,11 @@ PluginSettings {
     pluginId: "systemMenu"
 
     property string terminalApp: root.defaultSetting("terminalApp")
-    property bool setupInstalled: root.defaultSetting("setupInstalled")
     property bool showIcon: root.defaultSetting("showIcon")
     property bool showText: root.defaultSetting("showText")
 
     function defaultSetting(key) {
         if (key === "terminalApp") return "alacritty"
-        if (key === "setupInstalled") return false
         if (key === "showIcon") return true
         if (key === "showText") return true
         return undefined
@@ -69,46 +67,6 @@ PluginSettings {
                     //placeholderText: "Enter terminal application"
                     text: root.defaultSetting("terminalApp")
                     onTextChanged: root.terminalApp = text
-                }
-            }
-
-            StyledRect {
-                width: parent.width
-                height: 1
-            }
-
-            Row {
-                width: parent.width
-                spacing: Theme.spacingM
-
-                Column {
-                    width: parent.width - setupInstalledToggle.width - 20
-                    spacing: Theme.spacingXS
-                    anchors.verticalCenter: parent.verticalCenter
-
-                    StyledText {
-                        text: "Setup Installed"
-                        font.pixelSize: Theme.fontSizeLarge
-                        font.weight: Font.Medium
-                        color: Theme.surfaceText
-                    }
-                        
-                    StyledText {
-                        text: "Turn off to enable the setup button in the main menu."
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: Theme.surfaceVariantText
-                        width: parent.width
-                        wrapMode: Text.WordWrap
-                    }   
-                }
-
-                DankToggle {
-                    id: setupInstalledToggle
-                    anchors.verticalCenter: parent.verticalCenter
-                    checked: root.defaultSetting("setupInstalled")
-                    onToggled: isChecked => {
-                        root.setupInstalled = isChecked
-                    }
                 }
             }
 

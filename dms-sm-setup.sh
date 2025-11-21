@@ -101,19 +101,19 @@ echo "[autolinker] Pipeline complete. Your dms-sm-plugin assets are now operatio
 # Install required packages (Arch Linux only)
 if command -v pacman >/dev/null 2>&1; then
     echo -e "${YELLOW}→${NC} Installing required packages with pacman (Arch Linux)"
-    sudo pacman -S gum inetutils inxi expac less --noconfirm
-    sudo pacman -S plocate --noconfirm
+    sudo pacman -S gum inetutils inxi expac less --noconfirm --needed
+    sudo pacman -S plocate --noconfirm --needed
 
     # Try to install localsend if available in pacman
     if pacman -Si localsend >/dev/null 2>&1; then
         echo -e "${YELLOW}→${NC} Installing localsend from pacman"
-        sudo pacman -S localsend --noconfirm
+        sudo pacman -S localsend --noconfirm --needed
     else
         # Try to install localsend-bin from yay if yay is available
         if command -v yay >/dev/null 2>&1; then
             if yay -Si localsend-bin >/dev/null 2>&1; then
                 echo -e "${YELLOW}→${NC} Installing localsend-bin from yay"
-                yay -S localsend-bin --noconfirm
+                yay -S localsend-bin --noconfirm --needed
             else
                 echo -e "${YELLOW}⚠${NC} 'localsend-bin' not found in yay. Skipping."
             fi

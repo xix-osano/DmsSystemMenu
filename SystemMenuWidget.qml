@@ -28,13 +28,13 @@ PluginComponent {
     property var menuStack:    ([])
 
     property string currentTitle: "System Menu"
-    //property bool setupInstalled: boolSetting(pluginData.setupInstalled, false) || setupCheckResult
     property bool setupInstalled: setupCheckResult
 
     // Check if setup is complete by verifying scripts exist
     property bool setupCheckResult: false
 
     function checkSetupComplete() {
+        if (checkSetupProcess.running) return
         checkSetupProcess.command = ["sh", "-c", "command -v dms-sm-terminal >/dev/null 2>&1"]
         checkSetupProcess.running = true
     }
@@ -48,12 +48,7 @@ PluginComponent {
             var wasComplete = setupCheckResult
             setupCheckResult = (exitCode === 0)
             
-            // If setup just completed, save it to plugin data
-            if (setupCheckResult && !wasComplete) {
-                if (typeof PluginService !== "undefined" && PluginService.savePluginData) {
-                    PluginService.savePluginData(pluginId, "setupInstalled", true)
-                }
-            }
+            if (setupCheckResult) setupCheckTimer.stop()
         }
     }
 
@@ -81,11 +76,10 @@ PluginComponent {
         running: false
         repeat: true
         onTriggered: {
-            if (!setupCheckResult && !boolSetting(pluginData.setupInstalled, false)) {
+            if (!setupCheckResult) {
                 checkSetupComplete()
             } else {
-                // Stop checking once setup is confirmed complete
-                stop()
+                stop()   // Stop checking once setup is confirmed complete
             }
         }
     }
@@ -245,7 +239,7 @@ PluginComponent {
             var terminalCmd = splitArgs(root.terminalApp).join(" ")
             //var safeActionData = actionData.replace(/'/g, "'\\''") // escape single quotes
             //var scriptCmd = `PATH=$PATH:${scriptsPath} dms-sm-terminal ${terminalCmd} -- '${safeActionData}'`
-            var scriptCmd = `${envPath} dms-sm-terminal ${terminalCmd} -- '${actionData}'`
+            var scriptCmd = ${envPath} dms-sm-terminal ${terminalCmd} -- ${actionData}
             console.log("SystemMenu: Script launching:", scriptCmd)
             Quickshell.execDetached(["sh", "-c", scriptCmd])
             toast("Script executed: " + actionData)
