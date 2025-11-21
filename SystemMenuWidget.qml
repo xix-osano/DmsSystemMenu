@@ -16,7 +16,7 @@ PluginComponent {
     property string displayIcon: "menu"
     property string displayText: "System"
     property string terminalApp: pluginData.terminalApp !== undefined ? pluginData.terminalApp : "alacritty"
-    property string floatingTerminalApp: terminalApp + "--title=DMS_SM"
+    property string floatingTerminalApp: "alacritty --title=DMS_SM"
     property bool showIcon: boolSetting(pluginData.showIcon, true)
     property bool showText: boolSetting(pluginData.showText, true)
     property bool isLoading: false
@@ -194,7 +194,15 @@ PluginComponent {
 
     // Helper to split command string into array, handling basic quoted arguments
     function splitArgs(cmd) {
-        return cmd.trim().split(/\s+/);
+        // Regex to split by whitespace but keep quoted strings intact
+        const regex = /[^\s"]+|"([^"]*)"/g;
+        let match;
+        let args = [];
+        while (match = regex.exec(cmd)) {
+            // If the match had a quoted group, use that (index 1), otherwise use the main match (index 0)
+            args.push(match[1] ? match[1] : match[0]);
+        }
+        return args;
     }
 
     function executeCommand(command) {
@@ -350,7 +358,7 @@ PluginComponent {
             ViewToggleButton {
                 iconName: "terminal"
                 isActive: false
-                onClicked: root.executeCommand(floatingTerminalApp)
+                onClicked: root.executeCommand(root.floatingTerminalApp)
                 visible: root.terminalApp !== undefined && root.terminalApp !== ""
             }
         }
