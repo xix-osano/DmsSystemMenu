@@ -111,24 +111,24 @@ PluginComponent {
                 { name: "Tailscale", icon: "cloud", actionCmd: "Script:dms-sm-install-service tailscale" },
                 { name: "Dropbox", icon: "folder", actionCmd: "Script:dms-sm-install-service dropbox" }
             ]},
-            { name: "Editor", icon: "edit_square", submenu: [
-                { name: "VsCode", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor vscode" },
-                { name: "Cursor", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor cursor" },
-                { name: "Codium", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor codium" },
+            { name: "Editor", icon: "code", submenu: [
+                { name: "VsCode", icon: "memory", actionCmd: "Script:dms-sm-install-editor vscode" },
+                { name: "Cursor", icon: "memory", actionCmd: "Script:dms-sm-install-editor cursor" },
+                { name: "Codium", icon: "code", actionCmd: "Script:dms-sm-install-editor codium" },
                 { name: "Zed", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor zed" },
                 { name: "Sublime", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor sublime" },
                 { name: "Helix", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor helix" },
                 { name: "Emacs", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor emacs" }
             ]},
-            { name: "AI", icon: "edit_square", submenu: [
-                { name: "Claude", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai claude" },
-                { name: "Cursor", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai cursor" },
-                { name: "OpenAI", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai openai" },
-                { name: "Gemini", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai gemini" },
-                { name: "Studio", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai studio" },
-                { name: "Ollama", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai ollama" },
-                { name: "Crush", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai crush" },
-                { name: "Opencode", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai opencode" }
+            { name: "AI", icon: "neurology", submenu: [
+                { name: "Claude", icon: "robot", actionCmd: "Script:dms-sm-install-ai claude" },
+                { name: "Cursor", icon: "robot", actionCmd: "Script:dms-sm-install-ai cursor" },
+                { name: "OpenAI", icon: "robot", actionCmd: "Script:dms-sm-install-ai openai" },
+                { name: "Gemini", icon: "robot", actionCmd: "Script:dms-sm-install-ai gemini" },
+                { name: "Studio", icon: "robot", actionCmd: "Script:dms-sm-install-ai studio" },
+                { name: "Ollama", icon: "robot", actionCmd: "Script:dms-sm-install-ai ollama" },
+                { name: "Crush", icon: "robot", actionCmd: "Script:dms-sm-install-ai crush" },
+                { name: "Opencode", icon: "psychology", actionCmd: "Script:dms-sm-install-ai opencode" }
             ]}
         ]},
         { name: "Remove", icon: "delete", submenu: [
@@ -139,13 +139,13 @@ PluginComponent {
         { name: "Update", icon: "update", submenu: [
             { name: "System", icon: "system_update", actionCmd: "Script:dms-sm-update" },
             { name: "Firmware",     icon: "upgrade", actionCmd: "Script:dms-sm-update-firmware" },
-            { name: "Process", icon: "process", submenu: [
+            { name: "Process", icon: "tune", submenu: [
                 { name: "Wifi", icon: "wifi", actionCmd: "Script:dms-sm-restart-wifi" },
                 { name: "Bluetooth", icon: "bluetooth", actionCmd: "Script:dms-sm-restart-bluetooth" }
             ]},
-            { name: "Time", icon: "time", submenu: [
-                { name: "Timezone", icon: "time", actionCmd: "Script:dms-sm-tz-select" },
-                { name: "Time", icon: "time", actionCmd: "Script:dms-sm-update-time" }
+            { name: "Time", icon: "schedule", submenu: [
+                { name: "Timezone", icon: "history", actionCmd: "Script:dms-sm-tz-select" },
+                { name: "Time", icon: "access_time", actionCmd: "Script:dms-sm-update-time" }
             ]},
             { name: "Password", icon: "vpn_key", submenu: [
                 { name: "Drive", icon: "security", actionCmd: "Script:dms-sm-drive-set-password" },
@@ -384,7 +384,7 @@ PluginComponent {
             isActive: false
             onClicked: root.pluginSetupCmd()
             // show the setup/download button when setup is required and still in main menu
-            visible: root.setupRequired && menuStack.length === 0
+            visible: root.setupRequired && currentTitle === "System Menu"
         }
 
         ViewToggleButton {
