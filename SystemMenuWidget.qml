@@ -494,11 +494,11 @@ PluginComponent {
         SystemMenuText { 
             anchors.verticalCenter: parent.verticalCenter 
         }
-        BusyIndicator {
-            visible: root.actionRunning || root.isLoading
-            width: 20
-            height: 20
-        }
+        // BusyIndicator {
+        //     visible: root.actionRunning || root.isLoading
+        //     width: 30
+        //     height: 30
+        // }
     }
     verticalBarPill: Column {
         spacing: Theme.spacingXS
@@ -508,11 +508,11 @@ PluginComponent {
         SystemMenuText {
             anchors.horizontalCenter: parent.horizontalCenter 
         }
-        BusyIndicator {
-            visible: root.actionRunning || root.isLoading
-            width: 20
-            height: 20
-        }
+        // BusyIndicator {
+        //     visible: root.actionRunning || root.isLoading
+        //     width: 30
+        //     height: 30
+        // }
     }
 
     /* ----------  pop-out  ---------- */
