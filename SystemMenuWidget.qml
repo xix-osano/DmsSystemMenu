@@ -384,7 +384,7 @@ PluginComponent {
             anchors.leftMargin: Theme.spacingM
             iconName: "refresh"
             isActive: false
-            onClicked: root.pluginSetupCmd()
+            onClicked: root.checkPluginVersion()
             // show when pluginsetupbutton is not showing
             visible: !root.isLoading && !root.setupRequired && currentTitle === "System Menu"
         }
@@ -396,7 +396,7 @@ PluginComponent {
             anchors.leftMargin: Theme.spacingM
             iconName: "download"
             isActive: false
-            onClicked: root.checkPluginVersion()
+            onClicked: root.pluginSetupCmd()
             // show the setup/download button when setup is required and still in main menu
             visible: root.setupRequired && currentTitle === "System Menu"
         }
