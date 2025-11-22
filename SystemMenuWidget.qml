@@ -358,7 +358,7 @@ PluginComponent {
     component SystemMenuIcon: DankIcon {
         name: root.displayIcon
         size: Theme.barIconSize(root.barThickness, -4)
-        color: menuPopoutContent ? Theme.primary : Theme.surfaceText
+        color: root.hasPopout ? Theme.primary : Theme.surfaceText
 
         visible: root.showIcon
     }
@@ -542,15 +542,15 @@ PluginComponent {
                 }
 
                 Keys.onUpPressed: {
-                    list.currentIndex = Math.max(0, list.currentIndex - 1)
+                    menuList.currentIndex = Math.max(0, menuList.currentIndex - 1)
                 }
 
                 Keys.onDownPressed: {
-                    list.currentIndex = Math.min(list.count - 1, list.currentIndex + 1)
+                    menuList.currentIndex = Math.min(menuList.count - 1, menuList.currentIndex + 1)
                 }
 
                 Keys.onReturnPressed: {
-                    let m = list.model[list.currentIndex]
+                    let m = menuList.model[menuList.currentIndex]
                     if (!m) return
 
                     if (m.submenu) {
@@ -561,7 +561,7 @@ PluginComponent {
                 }
 
                 Keys.onSpacePressed: {
-                    let m = list.model[list.currentIndex]
+                    let m = menuList.model[menuList.currentIndex]
                     if (!m) return
 
                     if (m.submenu) {
@@ -571,7 +571,11 @@ PluginComponent {
                     }
                 }
 
-                Keys.forwardTo: [menuStack]
+                Keys.onEscapePressed: {
+                    root.goBack()
+                }
+
+                //Keys.forwardTo: [menuStack]
             }
         }
     }
