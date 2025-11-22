@@ -318,6 +318,7 @@ PluginComponent {
         Quickshell.Io.File.exists(root.installedFlagFile).then(function(installedExists) {
             if (!installedExists) {
                 root.setupRequired = true
+                root.isLoading = false
                 return
             }
 
@@ -472,8 +473,8 @@ PluginComponent {
         }
         BusyIndicator {
             visible: root.actionRunning
-            width: 20
-            height: 20
+            //width: 20
+            //height: 20
         }
     }
     verticalBarPill: Column {
@@ -486,8 +487,8 @@ PluginComponent {
         }
         BusyIndicator {
             visible: root.actionRunning
-            width: 20
-            height: 20
+            //width: 20
+            //height: 20
         }
     }
 
