@@ -488,10 +488,10 @@ PluginComponent {
     /* ----------  bar pills  ---------- */
     horizontalBarPill: Row {
         spacing: Theme.spacingXS
-        SystemMenuIcon {
+        SystemMenuText { 
             anchors.verticalCenter: parent.verticalCenter 
         }
-        SystemMenuText { 
+        SystemMenuIcon {
             anchors.verticalCenter: parent.verticalCenter 
         }
         // BusyIndicator {
