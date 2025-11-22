@@ -107,7 +107,7 @@ PluginComponent {
                     { name: "Phoenix", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env phoenix" }
                 ]}
             ]},
-            { name: "Service", icon: "add_circle", submenu: [
+            { name: "Service", icon: "storage", submenu: [
                 { name: "Bitwarden", icon: "security", actionCmd: "Script:dms-sm-install-service bitwarden" },
                 { name: "Tailscale", icon: "cloud", actionCmd: "Script:dms-sm-install-service tailscale" },
                 { name: "Dropbox", icon: "folder", actionCmd: "Script:dms-sm-install-service dropbox" }
