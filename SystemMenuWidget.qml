@@ -403,7 +403,7 @@ PluginComponent {
             ViewToggleButton {
                 iconName: "terminal"
                 isActive: false
-                onClicked: root.executeAction("Run:dms-sm-launch-terminal")
+                onClicked: root.executeAction("Script:dms-sm-launch-terminal")
                 visible: root.terminalApp !== undefined && root.terminalApp !== ""
             }
         }
