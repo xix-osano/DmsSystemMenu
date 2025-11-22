@@ -24,7 +24,7 @@ PluginComponent {
     property string installedFlagFile: assetsDir + "/.installed"
     property string installedVersionFile: assetsDir + "/.version"
     property string currentVersionFile: "~/.config/DankMaterialShell/plugins/DmsSystemMenu/assets/.version"
-    property bool isLoading: true
+    //property bool isLoading: true
     property bool setupRequired: false
 
     /* ----------  menu data  ---------- */
@@ -248,8 +248,7 @@ PluginComponent {
             break
         case "Execute":
             root.closePopout()
-            var terminalCmd = splitArgs(root.terminalApp).join(" ")
-            var scriptCmd = `${envPath} ${terminalCmd} -- ${actionData}`
+            var scriptCmd = `${envPath} ${actionData}`
             console.log("SystemMenu: Execute launching:", scriptCmd)
             Quickshell.execDetached(["sh", "-c", scriptCmd])
             toast("Command executed: " + actionData)
@@ -325,7 +324,7 @@ PluginComponent {
         Quickshell.Io.File.exists(root.installedFlagFile).then(function(installedExists) {
             if (!installedExists) {
                 root.setupRequired = true
-                root.isLoading = false
+                //root.isLoading = false
                 return
             }
 
@@ -334,19 +333,19 @@ PluginComponent {
                 // Read current plugin version
                 Quickshell.Io.File.read(root.currentVersionFile).then(function(currentVersion) {
                     root.setupRequired = (installedVersion.trim() !== currentVersion.trim())
-                    root.isLoading = false
+                    //root.isLoading = false
                     console.log("SystemMenu: setupRequired =", root.setupRequired,
                                 "installedVersion =", installedVersion.trim(),
                                 "currentVersion =", currentVersion.trim())
                 }).catch(function(e) {
                     console.warn("SystemMenu: Could not read current version file", e)
                     root.setupRequired = true
-                    root.isLoading = false // Set false even on failure
+                    //root.isLoading = false // Set false even on failure
                 })
             }).catch(function(e) {
                 console.warn("SystemMenu: Could not read installed version file", e)
                 root.setupRequired = true
-                root.isLoading = false // Set false even on failure
+                //root.isLoading = false // Set false even on failure
             })
         })
     }
@@ -355,8 +354,7 @@ PluginComponent {
     component SystemMenuIcon: DankIcon {
         name: root.displayIcon
         size: Theme.barIconSize(root.barThickness, -4)
-        color: modelData.topLevelMenu ? Theme.primary : Theme.surfaceText
-
+        color: Theme.primary
         visible: root.showIcon
     }
     component SystemMenuText: StyledText {
