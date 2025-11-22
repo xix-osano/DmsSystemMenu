@@ -25,7 +25,7 @@ PluginComponent {
     property string installedVersionFile: assetsDir + "/.version"
     property string currentVersionFile: "~/.config/DankMaterialShell/plugins/DmsSystemMenu/assets/.version"
     //property bool isLoading: true
-    property bool setupRequired: false
+    property bool setupRequired: true
 
     /* ----------  menu data  ---------- */
     property var currentItems: topLevelMenu
