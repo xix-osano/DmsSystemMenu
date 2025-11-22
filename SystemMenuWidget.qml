@@ -187,14 +187,22 @@ PluginComponent {
 
     /* ----------  navigation helpers  ---------- */
     function navigateTo(submenu, title) {
-        menuStack.push(currentItems)
+        menuStack.push({items: currentItems, title: currentTitle})
         currentItems = submenu
         currentTitle = title
     }
     function goBack() {
-        if (!menuStack.length) { root.closePopout(); return }
-        currentItems = menuStack.pop()
-        currentTitle = menuStack.length ? currentItems.name : "System Menu"
+        if (!menuStack.length) {
+            root.closePopout()
+            return 
+        }
+        //currentItems = menuStack.pop()
+        //currentTitle = menuStack.length ? currentItems.name : "System Menu"
+        let previousContext = menuStack.pop()
+        
+        // Assign the properties from the popped context
+        currentItems = previousContext.items
+        currentTitle = previousContext.title // <--- CORRECTLY USES STORED TITLE
     }
 
     /* ----------  command dispatcher  ---------- */
