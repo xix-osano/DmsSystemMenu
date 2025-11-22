@@ -24,7 +24,7 @@ PluginComponent {
     property string installedFlagFile: assetsDir + "/.installed"
     property string installedVersionFile: assetsDir + "/.version"
     property string currentVersionFile: "~/.config/DankMaterialShell/plugins/DmsSystemMenu/assets/.version"
-    //property bool isLoading: true
+    property bool isLoading: false
     property bool setupRequired: true
 
     /* ----------  menu data  ---------- */
@@ -252,6 +252,7 @@ PluginComponent {
             console.log("SystemMenu: Execute launching:", scriptCmd)
             Quickshell.execDetached(["sh", "-c", scriptCmd])
             toast("Command executed: " + actionData)
+            break
         case "Run":
             root.closePopout()
             Quickshell.execDetached(["sh", "-c", actionData])
@@ -319,35 +320,40 @@ PluginComponent {
         root.setupRequired = false
     }
 
-    Component.onCompleted: {
-        // Check if installed flag file exists
+    function checkPluginVersion() {
+        root.isLoading = true // Start loading indicator
+
         Quickshell.Io.File.exists(root.installedFlagFile).then(function(installedExists) {
             if (!installedExists) {
                 root.setupRequired = true
-                //root.isLoading = false
+                root.isLoading = false
                 return
             }
 
-            // Read installed version
             Quickshell.Io.File.read(root.installedVersionFile).then(function(installedVersion) {
-                // Read current plugin version
                 Quickshell.Io.File.read(root.currentVersionFile).then(function(currentVersion) {
                     root.setupRequired = (installedVersion.trim() !== currentVersion.trim())
-                    //root.isLoading = false
-                    console.log("SystemMenu: setupRequired =", root.setupRequired,
-                                "installedVersion =", installedVersion.trim(),
-                                "currentVersion =", currentVersion.trim())
+                    root.isLoading = false
+                    if (root.setupRequired) {
+                        toast("Plugin update available!")
+                    } else {
+                        toast("Plugin is up to date.")
+                    }
                 }).catch(function(e) {
                     console.warn("SystemMenu: Could not read current version file", e)
                     root.setupRequired = true
-                    //root.isLoading = false // Set false even on failure
+                    root.isLoading = false
                 })
             }).catch(function(e) {
                 console.warn("SystemMenu: Could not read installed version file", e)
                 root.setupRequired = true
-                //root.isLoading = false // Set false even on failure
+                root.isLoading = false
             })
         })
+    }
+
+    Component.onCompleted: {
+        root.checkPluginVersion() // Call the version check on plugin startup
     }
 
     /* ----------  UI components  ---------- */
@@ -370,6 +376,18 @@ PluginComponent {
         width: parent.width
         height: 52
         color: "transparent"
+
+        ViewToggleButton {
+            id: versionCheckBtn
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+            anchors.leftMargin: Theme.spacingM
+            iconName: "refresh"
+            isActive: false
+            onClicked: root.pluginSetupCmd()
+            // show when pluginsetupbutton is not showing
+            visible: !root.isLoading && !root.setupRequired && currentTitle === "System Menu"
+        }
        
         ViewToggleButton {
             id: pluginSetupButton
@@ -378,7 +396,7 @@ PluginComponent {
             anchors.leftMargin: Theme.spacingM
             iconName: "download"
             isActive: false
-            onClicked: root.pluginSetupCmd()
+            onClicked: root.checkPluginVersion()
             // show the setup/download button when setup is required and still in main menu
             visible: root.setupRequired && currentTitle === "System Menu"
         }
@@ -477,9 +495,9 @@ PluginComponent {
             anchors.verticalCenter: parent.verticalCenter 
         }
         BusyIndicator {
-            visible: root.actionRunning
-            //width: 20
-            //height: 20
+            visible: root.actionRunning || root.isLoading
+            width: 20
+            height: 20
         }
     }
     verticalBarPill: Column {
@@ -491,9 +509,9 @@ PluginComponent {
             anchors.horizontalCenter: parent.horizontalCenter 
         }
         BusyIndicator {
-            visible: root.actionRunning
-            //width: 20
-            //height: 20
+            visible: root.actionRunning || root.isLoading
+            width: 20
+            height: 20
         }
     }
 
