@@ -25,11 +25,12 @@ PluginComponent {
     property string installedVersionFile: assetsDir + "/.version"
     property string currentVersionFile: "~/.config/DankMaterialShell/plugins/DmsSystemMenu/assets/.version"
     property bool isLoading: true
-    property bool setupRequired: false
+    property bool setupRequired: true
 
     /* ----------  menu data  ---------- */
     property var currentItems: topLevelMenu
     property var menuStack:    ([])
+    property bool actionRunning: false
 
     property string currentTitle: "System Menu"
 
@@ -196,13 +197,10 @@ PluginComponent {
             root.closePopout()
             return 
         }
-        //currentItems = menuStack.pop()
-        //currentTitle = menuStack.length ? currentItems.name : "System Menu"
+
         let previousContext = menuStack.pop()
-        
-        // Assign the properties from the popped context
         currentItems = previousContext.items
-        currentTitle = previousContext.title // <--- CORRECTLY USES STORED TITLE
+        currentTitle = previousContext.title
     }
 
     /* ----------  command dispatcher  ---------- */
@@ -230,19 +228,23 @@ PluginComponent {
             break
         case "Edit":
             root.closePopout()
+            actionRunning = true
             var editCmd = `${envPath} dms-sm-launch-editor ${actionData}`
             console.log("SystemMenu: Edit launching:", editCmd)
             Quickshell.execDetached(["sh", "-c", editCmd])
             toast("Editing config file: " + actionData)
+            actionRunning = false
             break
 
         case "Script":
             root.closePopout()
+            actionRunning = true
             var terminalCmd = splitArgs(root.terminalApp).join(" ")
             var scriptCmd = `${envPath} dms-sm-terminal ${terminalCmd} -- ${actionData}`
             console.log("SystemMenu: Script launching:", scriptCmd)
             Quickshell.execDetached(["sh", "-c", scriptCmd])
             toast("Script executed: " + actionData)
+            actionRunning = false
             break
         case "Run":
             root.closePopout()
@@ -469,7 +471,9 @@ PluginComponent {
             anchors.verticalCenter: parent.verticalCenter 
         }
         BusyIndicator {
-            visible: root.isLoading
+            visible: root.actionRunning
+            width: 20
+            height: 20
         }
     }
     verticalBarPill: Column {
@@ -481,7 +485,9 @@ PluginComponent {
             anchors.horizontalCenter: parent.horizontalCenter 
         }
         BusyIndicator {
-            visible: root.isLoading
+            visible: root.actionRunning
+            width: 20
+            height: 20
         }
     }
 
