@@ -29,9 +29,6 @@ EOF
  # Ensure VSC's own auto-update feature is turned off
  printf '{\n  "update.mode": "none"\n}\n' > ~/.config/Code/User/settings.json
 
- # Apply Tokyo Night theme to VSCode
- printf '{\n  "name": "Tokyo Night"\n}\n' > ~/.config/Code/User/settings.json
- printf '{\n  "extension": "enkia.tokyo-night"\n}\n' > ~/.config/Code/User/settings.json
 # Apply CaskaydiaMono Nerd Font to the Integrated terminal
  printf '{\n  "terminal.integrated.fontFamily": "CaskaydiaMono Nerd Font"\n}\n' > ~/.config/Code/User/settings.json
  printf '{\n  "terminal.integrated.fontLigatures": false\n}\n' > ~/.config/Code/User/settings.json

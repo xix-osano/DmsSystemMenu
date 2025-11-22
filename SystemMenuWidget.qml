@@ -195,7 +195,7 @@ PluginComponent {
     function goBack() {
         if (!menuStack.length) { root.closePopout(); return }
         currentItems = menuStack.pop()
-        currentTitle = menuStack.length ? currentItems[0].name : "System Menu"
+        currentTitle = menuStack.length ? currentItems[1].name : "System Menu"
     }
 
     /* ----------  command dispatcher  ---------- */
@@ -358,7 +358,7 @@ PluginComponent {
     component SystemMenuIcon: DankIcon {
         name: root.displayIcon
         size: Theme.barIconSize(root.barThickness, -4)
-        color: Theme.surfaceText
+        color: menuPopoutContent ? Theme.primary : Theme.surfaceText
 
         visible: root.showIcon
     }
