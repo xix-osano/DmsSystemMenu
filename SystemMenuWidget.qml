@@ -367,7 +367,7 @@ PluginComponent {
         color: "transparent"
        
         ViewToggleButton {
-            id: pluginSetupvisible: !root.isLoading && root.setupRequired && currentTitle === "System Menu"
+            id: pluginSetupButton
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             anchors.leftMargin: Theme.spacingM
