@@ -1,0 +1,33 @@
+#!/bin/bash
+
+if [[ -z $1 ]]; then
+  service=$(gum choose --height 5 --header "Select Service" bitwarden tailscale dropbox)
+else
+  service=$1
+fi
+
+case "$service" in
+bitwarden)
+ echo -e "\nInstalling Bitwarden..."
+ sudo pacman -S bitwarden bitwarden-cli --noconfirm
+ ;;
+tailscale)
+ curl -fsSL https://tailscale.com/install.sh | sh
+ curl -fsSL https://neuralink.com/tsui/install.sh | bash
+
+ echo -e "\nStarting Tailscale..."
+ sudo tailscale up --accept-routes
+
+ echo -e "\nAdd tsui to sudoers..."
+ echo "$USER ALL=(ALL) NOPASSWD: $(which tsui)" | sudo tee /etc/sudoers.d/tsui
+ ;;
+dropbox)
+ echo "Installing dropbox dependencies..."
+ dms-sm-pkg-add dropbox dropbox-cli libappindicator-gtk3 python-gpgme nautilus-dropbox
+
+ echo "Starting Dropbox..."
+ dropbox-cli start &>/dev/null &
+ echo "See Dropbox icon behind   hover tray in top right and right-click for setup."
+ ;;
+esac
+

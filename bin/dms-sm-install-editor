@@ -1,0 +1,61 @@
+#!/bin/bash
+
+if [[ -z $1 ]]; then
+  editor=$(gum choose --height 5 --header "Select Editor" vscode cursor codium zed sublime helix emacs)
+else
+  editor=$1
+fi
+
+case "$editor" in
+vscode)
+ echo "Installing VSCode..."
+ dms-sm-pkg-add visual-studio-code-bin
+
+ mkdir -p ~/.vscode ~/.config/Code/User
+
+ cat > ~/.vscode/argv.json << 'EOF'
+ // This configuration file allows you to pass permanent command line arguments to VS Code.
+ // Only a subset of arguments is currently supported to reduce the likelihood of breaking
+ // the installation.
+ //
+ // PLEASE DO NOT CHANGE WITHOUT UNDERSTANDING THE IMPACT
+ //
+ // NOTE: Changing this file requires a restart of VS Code.
+ {
+   "password-store":"gnome-libsecret"
+ }
+EOF
+
+ # Ensure VSC's own auto-update feature is turned off
+ printf '{\n  "update.mode": "none"\n}\n' > ~/.config/Code/User/settings.json
+
+ # Apply Tokyo Night theme to VSCode
+ printf '{\n  "name": "Tokyo Night"\n}\n' > ~/.config/Code/User/settings.json
+ printf '{\n  "extension": "enkia.tokyo-night"\n}\n' > ~/.config/Code/User/settings.json
+ ;;
+cursor)
+ echo -e "\nInstalling Cursor...".
+ dms-sm-pkg-add cursor-bin
+ ;;
+codium)
+ echo -e "\nInstalling Vs Codium...".
+ dms-sm-pkg-aur-install vscodium-bin
+ ;;
+zed)
+ echo -e "\nInstalling Zed...".
+ dms-sm-pkg-add zed
+ ;;
+sublime)
+ echo -e "\nInstalling Sublime Text...".
+ dms-sm-pkg-add sublime-text-4
+ ;;
+helix)
+ echo -e "\nInstalling Helix...".
+ dms-sm-pkg-add helix
+ ;;
+emacs)
+ echo -e "\nInstalling Cursor CLI...".
+ dms-sm-pkg-add emacs-wayland
+ systemctl --user enable --now emacs.service
+ ;;
+esac

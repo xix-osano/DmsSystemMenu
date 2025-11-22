@@ -2,7 +2,7 @@
     "id": "systemMenu",
     "name": "System Menu",
     "description": "Displays system information and quick access to system functions.",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "author": "M.Enosh Osano",
     "type": "widget",
     "capabilities": ["system-menu", "dankbar-widget"],

@@ -1,0 +1,48 @@
+#!/bin/bash
+
+if [[ -z $1 ]]; then
+  ai=$(gum choose --height 5 --header "Select AI" claude cursor openai gemini studio ollama crush opencode)
+else
+  editor=$1
+fi
+
+ollama_pkg=$(
+(command -v nvidia-smi &>/dev/null && echo ollama-cuda) ||
+    (command -v rocminfo &>/dev/null && echo ollama-rocm) ||
+    echo ollama
+)
+
+case "$ai" in
+claude)
+ echo -e "\nInstalling Claude Code...".
+ dms-sm-pkg-add claude-code
+ ;;
+cursor)
+ echo -e "\nInstalling Cursor CLI...".
+ dms-sm-pkg-add cursor-cli
+ ;;
+openai)
+ echo -e "\nInstalling OpenAI Codex...".
+ dms-sm-pkg-add openai-codex-bin
+ ;;
+gemini)
+ echo -e "\nInstalling Gemini CLI...".
+ dms-sm-pkg-add gemini-cli
+ ;;
+studio)
+ echo -e "\nInstalling LM Studio...".
+ dms-sm-pkg-add lmstudio
+ ;;
+ollama)
+ echo -e "\nInstalling Ollama...".
+ dms-sm-pkg-add $ollama_pkg
+ ;;
+crush)
+ echo -e "\nInstalling Crush...".
+ dms-sm-pkg-add crush-bin
+ ;;
+opencode)
+ echo -e "\nInstalling Opencode...".
+ dms-sm-pkg-add opencode
+ ;;
+esac

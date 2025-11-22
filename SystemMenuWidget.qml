@@ -26,7 +26,6 @@ PluginComponent {
     property string installedFlagFile: assetsDir + "/.installed"
     property string installedVersionFile: assetsDir + "/.version"
     property string currentVersionFile: "~/.config/DankMaterialShell/plugins/DmsSystemMenu/assets/.version"
-    property bool setupInstalled: false
     property bool setupRequired: true
 
     /* ----------  menu data  ---------- */
@@ -84,17 +83,74 @@ PluginComponent {
         { name: "Install", icon: "add_circle", submenu: [
             { name: "Package", icon: "package", actionCmd: "Script:dms-sm-pkg-install" },
             { name: "AUR",     icon: "package", actionCmd: "Script:dms-sm-pkg-aur-install" },
-            { name: "Development", icon: "developer_mode", actionCmd: "Script:dms-sm-install-service" },
-            { name: "Service", icon: "add_circle", actionCmd: "Script:dms-sm-install-service" }
+            { name: "Development", icon: "developer_mode", submenu: [
+                { name: "Rust", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env rust" },
+                { name: "Docker", icon: "developer_mode", actionCmd: "Script:dms-sm-install-docker-dbs" },
+                { name: "Javascript", icon: "developer_mode", submenu: [
+                    { name: "Node", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env node" },
+                    { name: "Bun", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env bun" },
+                    { name: "Deno", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env deno" }
+                ]},
+                { name: "Go", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env go" },
+                { name: "Rails", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env ruby" },
+                { name: "Python", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env python" },
+                { name: "PHP", icon: "developer_mode", submenu: [
+                    { name: "PHP", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env php" },
+                    { name: "Laravel", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env laravel" },
+                    { name: "Symfony", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env symfony" }
+                ]},
+                { name: "Java", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env java" },
+                { name: "Zig", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env zig" },
+                { name: "Elixir", icon: "developer_mode", submenu: [
+                    { name: "Elixir", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env elixir" },
+                    { name: "Phoenix", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env phoenix" }
+                ]}
+            ]},
+            { name: "Service", icon: "add_circle", submenu: [
+                { name: "Bitwarden", icon: "security", actionCmd: "Script:dms-sm-install-service bitwarden" },
+                { name: "Tailscale", icon: "cloud", actionCmd: "Script:dms-sm-install-service tailscale" },
+                { name: "Dropbox", icon: "folder", actionCmd: "Script:dms-sm-install-service dropbox" }
+            ]},
+            { name: "Editor", icon: "edit_square", submenu: [
+                { name: "VsCode", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor vscode" },
+                { name: "Cursor", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor cursor" },
+                { name: "Codium", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor codium" },
+                { name: "Zed", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor zed" },
+                { name: "Sublime", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor sublime" },
+                { name: "Helix", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor helix" },
+                { name: "Emacs", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor emacs" }
+            ]},
+            { name: "AI", icon: "edit_square", submenu: [
+                { name: "Claude", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai claude" },
+                { name: "Cursor", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai cursor" },
+                { name: "OpenAI", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai openai" },
+                { name: "Gemini", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai gemini" },
+                { name: "Studio", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai studio" },
+                { name: "Ollama", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai ollama" },
+                { name: "Crush", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai crush" },
+                { name: "Opencode", icon: "edit_square", actionCmd: "Script:dms-sm-install-ai opencode" }
+            ]}
         ]},
         { name: "Remove", icon: "delete", submenu: [
-            { name: "Package", icon: "delete", actionCmd: "Script:dms-sm-pkg-install" },
-            { name: "AUR",     icon: "delete", actionCmd: "Script:dms-sm-pkg-aur-install" },
-            { name: "Service", icon: "delete", actionCmd: "Script:dms-sm-install-service" }
+            { name: "Package", icon: "delete", actionCmd: "Script:dms-sm-pkg-remove" },
+            { name: "Fingerprint",     icon: "delete", actionCmd: "Script:dms-sm-setup-fingerprint --remove" },
+            { name: "Fido2", icon: "delete", actionCmd: "Script:dms-sm-setup-fido2 --remove" }
         ]},
         { name: "Update", icon: "update", submenu: [
             { name: "System", icon: "system_update", actionCmd: "Script:dms-sm-update" },
             { name: "Firmware",     icon: "upgrade", actionCmd: "Script:dms-sm-update-firmware" },
+            { name: "Process", icon: "process", submenu: [
+                { name: "Wifi", icon: "wifi", actionCmd: "Script:dms-sm-restart-wifi" },
+                { name: "Bluetooth", icon: "bluetooth", actionCmd: "Script:dms-sm-restart-bluetooth" }
+            ]},
+            { name: "Time", icon: "time", submenu: [
+                { name: "Timezone", icon: "time", actionCmd: "Script:dms-sm-tz-select" },
+                { name: "Time", icon: "time", actionCmd: "Script:dms-sm-update-time" }
+            ]},
+            { name: "Password", icon: "vpn_key", submenu: [
+                { name: "Drive", icon: "security", actionCmd: "Script:dms-sm-drive-set-password" },
+                { name: "User", icon: "verified_user", actionCmd: "Script:passwd" }
+            ]},
             { name: "DMSSystemMenu Plugin", icon: "extension", actionCmd: "Script:dms-sm-update-plugin" }
         ]},
         { name: "Power", icon: "power_settings_new", submenu: [
@@ -267,13 +323,12 @@ PluginComponent {
         toast("Setup script launching in terminal...")
 
         // mark as installed after setup
-        root.setupInstalled = true
         root.setupRequired = false
     }
 
     Component.onCompleted: {
-        // Check if installed version file exists
-        Quickshell.Io.File.exists(root.installedVersionFile).then(function(installedExists) {
+        // Check if installed flag file exists
+        Quickshell.Io.File.exists(root.installedFlagFile).then(function(installedExists) {
             if (!installedExists) {
                 root.setupRequired = true
                 return
@@ -282,21 +337,18 @@ PluginComponent {
             // Read installed version
             Quickshell.Io.File.read(root.installedVersionFile).then(function(installedVersion) {
                 // Read current plugin version
-                Quickshell.Io.File.read(currentVersionFile).then(function(currentVersion) {
+                Quickshell.Io.File.read(root.currentVersionFile).then(function(currentVersion) {
                     root.setupRequired = (installedVersion.trim() !== currentVersion.trim())
-                    root.setupInstalled = !root.setupRequired
                     console.log("SystemMenu: setupRequired =", root.setupRequired,
                                 "installedVersion =", installedVersion.trim(),
                                 "currentVersion =", currentVersion.trim())
                 }).catch(function(e) {
                     console.warn("SystemMenu: Could not read current version file", e)
                     root.setupRequired = true
-                    root.setupInstalled = false
                 })
             }).catch(function(e) {
                 console.warn("SystemMenu: Could not read installed version file", e)
-                root.setupRequired = false
-                root.setupInstalled = true
+                root.setupRequired = true
             })
         })
     }
