@@ -26,7 +26,7 @@ PluginComponent {
     property string installedFlagFile: assetsDir + "/.installed"
     property string installedVersionFile: assetsDir + "/.version"
     property string currentVersionFile: "~/.config/DankMaterialShell/plugins/DmsSystemMenu/assets/.version"
-    property bool setupRequired: true
+    property bool setupRequired: false
 
     /* ----------  menu data  ---------- */
     property var currentItems: topLevelMenu
@@ -57,9 +57,10 @@ PluginComponent {
             { name: "Share Folder",    icon: "folder", actionCmd: "Script:dms-sm-share folder" }
         ]},
         { name: "Config",  icon: "edit_square", submenu: [
-            { name: "Edit Hyprland", icon: "edit", actionCmd: "Edit:~/.config/hypr/hyprland.conf" },
-            { name: "Edit Niri", icon: "edit", actionCmd: "Edit:~/.config/niri/config.kdl" },
-            { name: "Edit Bash",   icon: "edit", actionCmd: "Edit:~/.bashrc" }
+            { name: "Edit Hyprland", icon: "description", actionCmd: "Edit:~/.config/hypr/hyprland.conf" },
+            { name: "Edit Niri", icon: "description", actionCmd: "Edit:~/.config/niri/config.kdl" },
+            { name: "Edit Bash",   icon: "description", actionCmd: "Edit:~/.bashrc" },
+            { name: "Edit Starship", icon: "description", actionCmd: "Edit:~/.config/starship.toml" }
         ]},
         { name: "Setup",  icon: "construction", submenu: [
             { name: "Security", icon: "security", submenu: [
@@ -85,7 +86,7 @@ PluginComponent {
             { name: "AUR",     icon: "package", actionCmd: "Script:dms-sm-pkg-aur-install" },
             { name: "Development", icon: "developer_mode", submenu: [
                 { name: "Rust", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env rust" },
-                { name: "Docker", icon: "developer_mode", actionCmd: "Script:dms-sm-install-docker-dbs" },
+                { name: "Docker", icon: "database", actionCmd: "Script:dms-sm-install-docker-dbs" },
                 { name: "Javascript", icon: "developer_mode", submenu: [
                     { name: "Node", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env node" },
                     { name: "Bun", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env bun" },
@@ -112,13 +113,13 @@ PluginComponent {
                 { name: "Dropbox", icon: "folder", actionCmd: "Script:dms-sm-install-service dropbox" }
             ]},
             { name: "Editor", icon: "code", submenu: [
-                { name: "VsCode", icon: "memory", actionCmd: "Script:dms-sm-install-editor vscode" },
-                { name: "Cursor", icon: "memory", actionCmd: "Script:dms-sm-install-editor cursor" },
-                { name: "Codium", icon: "code", actionCmd: "Script:dms-sm-install-editor codium" },
-                { name: "Zed", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor zed" },
-                { name: "Sublime", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor sublime" },
-                { name: "Helix", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor helix" },
-                { name: "Emacs", icon: "edit_square", actionCmd: "Script:dms-sm-install-editor emacs" }
+                { name: "VsCode", icon: "psychology", actionCmd: "Script:dms-sm-install-editor vscode" },
+                { name: "Cursor", icon: "psychology", actionCmd: "Script:dms-sm-install-editor cursor" },
+                { name: "Codium", icon: "psychology", actionCmd: "Script:dms-sm-install-editor codium" },
+                { name: "Zed", icon: "psychology", actionCmd: "Script:dms-sm-install-editor zed" },
+                { name: "Sublime", icon: "psychology", actionCmd: "Script:dms-sm-install-editor sublime" },
+                { name: "Helix", icon: "psychology", actionCmd: "Script:dms-sm-install-editor helix" },
+                { name: "Emacs", icon: "psychology", actionCmd: "Script:dms-sm-install-editor emacs" }
             ]},
             { name: "AI", icon: "neurology", submenu: [
                 { name: "Claude", icon: "robot", actionCmd: "Script:dms-sm-install-ai claude" },
@@ -128,7 +129,7 @@ PluginComponent {
                 { name: "Studio", icon: "robot", actionCmd: "Script:dms-sm-install-ai studio" },
                 { name: "Ollama", icon: "robot", actionCmd: "Script:dms-sm-install-ai ollama" },
                 { name: "Crush", icon: "robot", actionCmd: "Script:dms-sm-install-ai crush" },
-                { name: "Opencode", icon: "psychology", actionCmd: "Script:dms-sm-install-ai opencode" }
+                { name: "Opencode", icon: "robot", actionCmd: "Script:dms-sm-install-ai opencode" }
             ]}
         ]},
         { name: "Remove", icon: "delete", submenu: [
