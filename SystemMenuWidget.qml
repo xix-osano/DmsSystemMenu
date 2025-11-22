@@ -16,16 +16,15 @@ PluginComponent {
     property string displayIcon: "menu"
     property string displayText: "System"
     property string terminalApp: pluginData.terminalApp !== undefined ? pluginData.terminalApp : "alacritty"
-    property string floatingTerminalApp: "alacritty --title=DMS_SM"
     property bool showIcon: boolSetting(pluginData.showIcon, true)
     property bool showText: boolSetting(pluginData.showText, true)
-    property bool isLoading: false
 
     // property string scriptsPath: Quickshell.env.HOME + "/.local/share/dms-sm-plugin/bin"
     property string assetsDir: "~/.local/share/dms-sm-plugin/assets"
     property string installedFlagFile: assetsDir + "/.installed"
     property string installedVersionFile: assetsDir + "/.version"
     property string currentVersionFile: "~/.config/DankMaterialShell/plugins/DmsSystemMenu/assets/.version"
+    property bool isLoading: true
     property bool setupRequired: false
 
     /* ----------  menu data  ---------- */
@@ -195,11 +194,11 @@ PluginComponent {
     function goBack() {
         if (!menuStack.length) { root.closePopout(); return }
         currentItems = menuStack.pop()
-        currentTitle = menuStack.length ? currentItems[1].name : "System Menu"
+        currentTitle = menuStack.length - 1 ? currentItems[0].name : "System Menu"
     }
 
     /* ----------  command dispatcher  ---------- */
-    function runAction(cmdString) {
+    function executeAction(cmdString) {
         if (!cmdString) { 
             console.warn("SystemMenu: empty command")
             return 
@@ -264,29 +263,6 @@ PluginComponent {
         return args;
     }
 
-    function executeCommand(command) {
-        if (!command) return
-
-        root.closePopout()
-        isLoading = true
-        actionProcess.command = ["sh", "-c", command]
-        actionProcess.running = true
-    }
-
-    Process {
-        id: actionProcess
-        command: ["sh", "-c", ""]
-        running: false
-
-        onExited: (exitCode, exitStatus) => {
-            root.isLoading = false // Should always be false upon exit
-            if (exitCode !== 0) {
-                console.warn("DmsSystemMenu: Command failed with code", exitCode)
-                root.toast(`Command failed with exit code ${exitCode}. Check terminal output.`)
-            }
-        }
-    }
-
     /* --------Function to copy needed scripts & Add path to bash*/
     function pluginSetupCmd() {
         root.closePopout()
@@ -340,16 +316,19 @@ PluginComponent {
                 // Read current plugin version
                 Quickshell.Io.File.read(root.currentVersionFile).then(function(currentVersion) {
                     root.setupRequired = (installedVersion.trim() !== currentVersion.trim())
+                    root.isLoading = false
                     console.log("SystemMenu: setupRequired =", root.setupRequired,
                                 "installedVersion =", installedVersion.trim(),
                                 "currentVersion =", currentVersion.trim())
                 }).catch(function(e) {
                     console.warn("SystemMenu: Could not read current version file", e)
                     root.setupRequired = true
+                    root.isLoading = false // Set false even on failure
                 })
             }).catch(function(e) {
                 console.warn("SystemMenu: Could not read installed version file", e)
                 root.setupRequired = true
+                root.isLoading = false // Set false even on failure
             })
         })
     }
@@ -385,7 +364,7 @@ PluginComponent {
             isActive: false
             onClicked: root.pluginSetupCmd()
             // show the setup/download button when setup is required and still in main menu
-            visible: root.setupRequired && currentTitle === "System Menu"
+            visible: !root.isLoading && root.setupRequired && currentTitle === "System Menu"
         }
 
         ViewToggleButton {
@@ -413,7 +392,7 @@ PluginComponent {
             ViewToggleButton {
                 iconName: "terminal"
                 isActive: false
-                onClicked: root.executeCommand(root.floatingTerminalApp)
+                onClicked: root.executeAction("Run:dms-sm-launch-terminal")
                 visible: root.terminalApp !== undefined && root.terminalApp !== ""
             }
         }
@@ -536,7 +515,7 @@ PluginComponent {
                         menuData: modelData
                         onClicked: {
                             if (modelData.submenu) root.navigateTo(modelData.submenu, modelData.name)
-                            else if (modelData.actionCmd) root.runAction(modelData.actionCmd)
+                            else if (modelData.actionCmd) root.executeAction(modelData.actionCmd)
                         }
                     }
                 }
