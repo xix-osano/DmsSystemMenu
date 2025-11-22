@@ -380,7 +380,7 @@ PluginComponent {
             isActive: false
             onClicked: root.pluginSetupCmd()
             // show the setup/download button when setup is required and still in main menu
-            visible: !root.isLoading && root.setupRequired && currentTitle === "System Menu"
+            visible: root.setupRequired && currentTitle === "System Menu"
         }
 
         ViewToggleButton {
