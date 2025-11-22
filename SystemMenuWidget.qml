@@ -194,7 +194,7 @@ PluginComponent {
     function goBack() {
         if (!menuStack.length) { root.closePopout(); return }
         currentItems = menuStack.pop()
-        currentTitle = menuStack.length - 1 ? currentItems[0].name : "System Menu"
+        currentTitle = menuStack.length ? currentItems[-1].name : "System Menu"
     }
 
     /* ----------  command dispatcher  ---------- */
