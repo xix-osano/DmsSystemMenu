@@ -246,6 +246,13 @@ PluginComponent {
             toast("Script executed: " + actionData)
             actionRunning = false
             break
+        case "Execute":
+            root.closePopout()
+            var terminalCmd = splitArgs(root.terminalApp).join(" ")
+            var scriptCmd = `${envPath} ${terminalCmd} -- ${actionData}`
+            console.log("SystemMenu: Execute launching:", scriptCmd)
+            Quickshell.execDetached(["sh", "-c", scriptCmd])
+            toast("Command executed: " + actionData)
         case "Run":
             root.closePopout()
             Quickshell.execDetached(["sh", "-c", actionData])
@@ -348,7 +355,7 @@ PluginComponent {
     component SystemMenuIcon: DankIcon {
         name: root.displayIcon
         size: Theme.barIconSize(root.barThickness, -4)
-        color: root.hasPopout ? Theme.primary : Theme.surfaceText
+        color: modelData.topLevelMenu ? Theme.primary : Theme.surfaceText
 
         visible: root.showIcon
     }
@@ -403,7 +410,7 @@ PluginComponent {
             ViewToggleButton {
                 iconName: "terminal"
                 isActive: false
-                onClicked: root.executeAction("Script:dms-sm-launch-terminal")
+                onClicked: root.executeAction("Execute:dms-sm-launch-terminal")
                 visible: root.terminalApp !== undefined && root.terminalApp !== ""
             }
         }
