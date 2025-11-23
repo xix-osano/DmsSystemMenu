@@ -71,8 +71,8 @@ PluginComponent {
             ]},
             { name: "Firewall", icon: "verified_user", submenu: [
                 { name: "UFW", icon: "vpn_key", actionCmd: "Script:dms-sm-setup-firewall ufw" },
-                { name: "UFW(Docker)", icon: "database", actionCmd: "Script:dms-sm-setup-firewall ufw-docker" },
-                { name: "UFW(Localsend)",   icon: "storage", actionCmd: "Script:dms-sm-setup-firewall ufw-localsend" }
+                { name: "UFW (Docker)", icon: "database", actionCmd: "Script:dms-sm-setup-firewall ufw-docker" },
+                { name: "UFW (Localsend)",   icon: "storage", actionCmd: "Script:dms-sm-setup-firewall ufw-localsend" }
             ]},
             { name: "Power",   icon: "battery_full", submenu: [
                 { name: "Power-saver",   icon: "battery_saver", actionCmd: "Script:dms-sm-setup-power power-saver" },
