@@ -92,7 +92,7 @@ PluginComponent {
             { name: "Development", icon: "developer_mode", submenu: [
                 { name: "Rust", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env rust" },
                 { name: "Docker", icon: "database", submenu: [
-                    { name: "Docker", icon: "container", actionCmd: "Script:dms-sm-install-docker" },
+                    { name: "Docker", icon: "box", actionCmd: "Script:dms-sm-install-docker" },
                     { name: "Docker Databases", icon: "storage", submenu: [
                         { name: "MySQL", icon: "database", actionCmd: "Script:dms-sm-install-dbs MySQL" },
                         { name: "PostgreSQL", icon: "database", actionCmd: "Script:dms-sm-install-dbs PostgreSQL" },
