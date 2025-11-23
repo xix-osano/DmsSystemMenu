@@ -1,0 +1,74 @@
+#!/bin/bash
+
+if [[ -z $1 ]]; then
+  firewall=$(gum choose --height 5 --header "Select UFW Rules" ufw ufw-docker ufw-localsend)
+else
+  firewall=$1
+fi
+
+case "$firewall" in
+
+ufw)
+  echo "Installing UFW..."
+  sudo pacman -S ufw --noconfirm
+
+  sudo ufw disable
+
+  echo "Configuring baseline UFW ruleset..."
+  sudo ufw limit 22/tcp comment 'SSH rate limit'
+  sudo ufw allow 80/tcp comment 'HTTP'
+  sudo ufw allow 443/tcp comment 'HTTPS'
+
+  sudo ufw default deny incoming
+  sudo ufw default allow outgoing
+
+  echo "Enabling UFW..."
+  sudo ufw --force enable
+  sudo systemctl enable ufw
+
+  echo "Baseline firewall policy successfully deployed."
+  ;;
+
+ufw-docker)
+  echo "Installing UFW and ufw-docker..."
+  sudo pacman -S ufw ufw-docker --noconfirm
+
+  sudo ufw disable
+
+  echo "Allowing Docker DNS resolution..."
+  sudo ufw allow in proto udp from 172.17.0.0/16 to 172.17.0.1 port 53 comment 'docker-dns'
+
+  sudo ufw default deny incoming
+  sudo ufw default allow outgoing
+
+  echo "Enabling UFW..."
+  sudo ufw --force enable
+  sudo systemctl enable ufw
+
+  echo "Activating Docker firewall integration..."
+  sudo ufw-docker install
+  sudo ufw reload
+
+  echo "Docker-aware firewall policy successfully deployed."
+  ;;
+
+ufw-localsend)
+  echo "Installing UFW..."
+  sudo pacman -S ufw --noconfirm
+
+  sudo ufw disable
+
+  echo "Configuring LocalSend ports..."
+  sudo ufw allow 53317/udp comment 'localsend-udp'
+  sudo ufw allow 53317/tcp comment 'localsend-tcp'
+
+  sudo ufw default deny incoming
+  sudo ufw default allow outgoing
+
+  echo "Enabling UFW..."
+  sudo ufw --force enable
+  sudo systemctl enable ufw
+
+  echo "LocalSend-friendly firewall policy successfully deployed."
+  ;;
+esac

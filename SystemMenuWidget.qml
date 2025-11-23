@@ -69,6 +69,11 @@ PluginComponent {
                 { name: "Fingerprint",   icon: "fingerprint", actionCmd: "Script:dms-sm-setup-fingerprint" },
                 { name: "Fido2",   icon: "vpn_key", actionCmd: "Script:dms-sm-setup-fido2" }
             ]},
+            { name: "Firewall", icon: "verified_user", submenu: [
+                { name: "UFW", icon: "vpn_key", actionCmd: "Script:dms-sm-setup-firewall ufw" },
+                { name: "UFW(Docker)", icon: "database", actionCmd: "Script:dms-sm-setup-firewall ufw-docker" },
+                { name: "UFW(Localsend)",   icon: "storage", actionCmd: "Script:dms-sm-setup-firewall ufw-localsend" }
+            ]},
             { name: "Power",   icon: "battery_full", submenu: [
                 { name: "Power-saver",   icon: "battery_saver", actionCmd: "Script:dms-sm-setup-power power-saver" },
                 { name: "Balanced",   icon: "battery_full", actionCmd: "Script:dms-sm-setup-power balanced" },
@@ -86,7 +91,17 @@ PluginComponent {
             { name: "AUR",     icon: "package", actionCmd: "Script:dms-sm-pkg-aur-install" },
             { name: "Development", icon: "developer_mode", submenu: [
                 { name: "Rust", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env rust" },
-                { name: "Docker", icon: "database", actionCmd: "Script:dms-sm-install-docker-dbs" },
+                { name: "Docker", icon: "database", submenu: [
+                    { name: "Docker", icon: "container", actionCmd: "Script:dms-sm-install-docker" },
+                    { name: "Docker Databases", icon: "storage", submenu: [
+                        { name: "MySQL", icon: "database", actionCmd: "Script:dms-sm-install-dbs MySQL" },
+                        { name: "PostgreSQL", icon: "database", actionCmd: "Script:dms-sm-install-dbs PostgreSQL" },
+                        { name: "Redis", icon: "database", actionCmd: "Script:dms-sm-install-dbs Redis" },
+                        { name: "MongoDB", icon: "database", actionCmd: "Script:dms-sm-install-dbs MongoDB" },
+                        { name: "MariaDB", icon: "database", actionCmd: "Script:dms-sm-install-dbs MariaDB" },
+                        { name: "MSSQL", icon: "database", actionCmd: "Script:dms-sm-install-dbs MSSQL" }
+                    ]}
+                ]},
                 { name: "Javascript", icon: "developer_mode", submenu: [
                     { name: "Node", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env node" },
                     { name: "Bun", icon: "developer_mode", actionCmd: "Script:dms-sm-install-dev-env bun" },
