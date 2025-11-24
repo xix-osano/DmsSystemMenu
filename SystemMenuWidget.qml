@@ -374,7 +374,7 @@ PluginComponent {
     /* ----------  UI components  ---------- */
     component SystemMenuIcon: DankIcon {
         name: root.displayIcon
-        size: Theme.barIconSize(root.barThickness, -4)
+        size: Theme.barIconSize(root.barThickness, -1)
         color: Theme.primary
         visible: root.showIcon
     }
