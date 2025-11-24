@@ -247,7 +247,7 @@ PluginComponent {
             var editCmd = `${envPath} dms-sm-launch-editor ${actionData}`
             console.log("SystemMenu: Edit launching:", editCmd)
             Quickshell.execDetached(["sh", "-c", editCmd])
-            toast("Editing config file: " + actionData)
+            //toast("Editing config file: " + actionData)
             actionRunning = false
             break
 
@@ -258,7 +258,7 @@ PluginComponent {
             var scriptCmd = `${envPath} dms-sm-terminal ${terminalCmd} -- ${actionData}`
             console.log("SystemMenu: Script launching:", scriptCmd)
             Quickshell.execDetached(["sh", "-c", scriptCmd])
-            toast("Script executed: " + actionData)
+            //toast("Script executed: " + actionData)
             actionRunning = false
             break
         case "Execute":
@@ -266,7 +266,7 @@ PluginComponent {
             var scriptCmd = `${envPath} ${actionData}`
             console.log("SystemMenu: Execute launching:", scriptCmd)
             Quickshell.execDetached(["sh", "-c", scriptCmd])
-            toast("Command executed: " + actionData)
+            //toast("Command executed: " + actionData)
             break
         case "Run":
             root.closePopout()
