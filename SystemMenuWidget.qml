@@ -392,40 +392,46 @@ PluginComponent {
         height: 52
         color: "transparent"
 
-        ViewToggleButton {
-            id: versionCheckBtn
-            anchors.verticalCenter: parent.verticalCenter
+        Row {
             anchors.left: parent.left
             anchors.leftMargin: Theme.spacingM
-            iconName: "refresh"
-            isActive: false
-            onClicked: root.checkPluginVersion()
-            // show when pluginsetupbutton is not showing
-            visible: !root.isLoading && !root.setupRequired && currentTitle === "System Menu"
-        }
-       
-        ViewToggleButton {
-            id: pluginSetupButton
             anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.leftMargin: Theme.spacingM
-            iconName: "download"
-            isActive: false
-            onClicked: root.pluginSetupCmd()
-            // show the setup/download button when setup is required and still in main menu
-            visible: root.setupRequired && currentTitle === "System Menu"
+            spacing: Theme.spacingXS
+
+            ViewToggleButton {
+                id: backBtn
+                iconName: "arrow_back"
+                isActive: false
+                onClicked: root.goBack()
+                visible: currentTitle !== "System Menu"
+            }
+
+            ViewToggleButton {
+                iconName: "terminal"
+                isActive: false
+                onClicked: root.executeAction("Execute:dms-sm-launch-terminal")
+                visible: root.terminalApp !== undefined && root.terminalApp !== ""
+            }
+
+            ViewToggleButton {
+                id: versionCheckBtn
+                iconName: "refresh"
+                isActive: false
+                onClicked: root.checkPluginVersion()
+                // show when pluginsetupbutton is not showing
+                visible: !root.isLoading && !root.setupRequired && currentTitle === "System Menu"
+            }
+        
+            ViewToggleButton {
+                id: pluginSetupButton
+                iconName: "download"
+                isActive: false
+                onClicked: root.pluginSetupCmd()
+                // show the setup/download button when setup is required and still in main menu
+                visible: root.setupRequired && currentTitle === "System Menu"
+            }
         }
 
-        ViewToggleButton {
-            id: backBtn
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.leftMargin: Theme.spacingM
-            iconName: "arrow_back"
-            isActive: false
-            onClicked: root.goBack()
-            visible: currentTitle !== "System Menu"
-        }
         StyledText {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
@@ -434,15 +440,22 @@ PluginComponent {
             font.weight: Font.Bold
             color: Theme.surfaceText
         }
+
         Row {
             anchors.right: parent.right
+            anchors.rightMargin: Theme.spacingM
             anchors.verticalCenter: parent.verticalCenter
             spacing: Theme.spacingXS
             ViewToggleButton {
-                iconName: "terminal"
+                iconName: "settings"
                 isActive: false
-                onClicked: root.executeAction("Execute:dms-sm-launch-terminal")
-                visible: root.terminalApp !== undefined && root.terminalApp !== ""
+                onClicked: runAction(Run:dms ipc call settings toggle)
+            }
+
+            ViewToggleButton {
+                iconName: "close"
+                isActive: false
+                onClicked: root.closePopout()
             }
         }
     }
