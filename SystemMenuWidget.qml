@@ -516,9 +516,9 @@ PluginComponent {
     /* ----------  bar pills  ---------- */
     horizontalBarPill: Row {
         spacing: Theme.spacingXS
-        SystemMenuText { 
-            anchors.verticalCenter: parent.verticalCenter 
-        }
+        // SystemMenuText { 
+        //     anchors.verticalCenter: parent.verticalCenter 
+        // }
         SystemMenuIcon {
             anchors.verticalCenter: parent.verticalCenter 
         }
@@ -533,9 +533,9 @@ PluginComponent {
         SystemMenuIcon { 
             anchors.horizontalCenter: parent.horizontalCenter
         }
-        SystemMenuText {
-            anchors.horizontalCenter: parent.horizontalCenter 
-        }
+        // SystemMenuText {
+        //     anchors.horizontalCenter: parent.horizontalCenter 
+        // }
         // BusyIndicator {
         //     visible: root.actionRunning || root.isLoading
         //     width: 30
