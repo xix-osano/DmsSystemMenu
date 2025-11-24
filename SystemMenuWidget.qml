@@ -449,7 +449,7 @@ PluginComponent {
             ViewToggleButton {
                 iconName: "settings"
                 isActive: false
-                onClicked: runAction(Run:dms ipc call settings toggle)
+                onClicked: root.executeAction("Run:dms ipc call settings open")
             }
 
             ViewToggleButton {
