@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
+IFS=$'\n\t'
 
 # Update Time
 echo "Updating time..."
@@ -11,10 +12,16 @@ echo -e "\e[32m\nUpdate system packages\e[0m"
 sudo pacman -Syu --noconfirm
 
 # Update AUR packages if any are installed
-if pacman -Qem >/dev/null; then
-  if dms-sm-pkg-aur-accessible; then
+if pacman -Qem >/dev/null 2>&1; then
+  if command -v dms-sm-pkg-aur-accessible >/dev/null 2>&1 && dms-sm-pkg-aur-accessible; then
     echo -e "\e[32m\nUpdate AUR packages\e[0m"
-    yay -Sua --noconfirm
+    if command -v yay >/dev/null 2>&1; then
+      yay -Sua --noconfirm
+    elif command -v paru >/dev/null 2>&1; then
+      paru -Sua --noconfirm
+    else
+      echo -e "\e[31m\nNo AUR helper found; skipping AUR updates\e[0m"
+    fi
     echo
   else
     echo -e "\e[31m\nAUR is unavailable (so skipping updates)\e[0m"
@@ -22,17 +29,29 @@ if pacman -Qem >/dev/null; then
   fi
 fi
 
-orphans=$(pacman -Qtdq || true)
-if [[ -n $orphans ]]; then
+# Remove orphaned packages (if any)
+mapfile -t orphans < <(pacman -Qtdq 2>/dev/null || true)
+if (( ${#orphans[@]} )); then
   echo -e "\e[32m\nRemove orphan system packages\e[0m"
-  for pkg in $orphans; do
+  for pkg in "${orphans[@]}"; do
     sudo pacman -Rs --noconfirm "$pkg" || true
   done
   echo
 fi
 
 # After Update Restart
-if [ "$(uname -r | sed 's/-arch/\.arch/')" != "$(pacman -Q linux | awk '{print $2}')" ]; then
-  gum confirm "Linux kernel has been updated. Reboot?" && sudo reboot now
+# Compare installed linux package version with running kernel.
+installed_linux_ver=$(pacman -Q linux 2>/dev/null | awk '{print $2}' || true)
+running_kernel_ver=$(uname -r | sed 's/-arch/\.arch/')
 
+if [[ -n "$installed_linux_ver" && "$running_kernel_ver" != "$installed_linux_ver" ]]; then
+  if command -v gum >/dev/null 2>&1; then
+    gum confirm "Linux kernel has been updated. Reboot?" && sudo reboot now
+  else
+    read -r -p "Linux kernel has been updated. Reboot? [y/N] " ans
+    if [[ "$ans" =~ ^[Yy]$ ]]; then
+      sudo reboot now
+    fi
+  fi
+fi
 
